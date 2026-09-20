@@ -1,0 +1,18 @@
+# 4 columns x 3 rows, top to bottom. All distances are mm.
+# World origin: bottom left. Tokens name connected compass edges.
+schema_version: 1
+name: Elle
+units: mm
+source: references/board_4_3_elle.png
+grid_size_mm: 240
+line:
+  default_width_mm: 20
+  default_turn_radius_mm: 80
+columns:
+  placement: grid_intersections
+  display_diameter_mm: 20       # Visualization only, NOT collision geometry
+  collision_reference: center
+tiles:
+  - [turn_se, turn_sw, empty, empty]
+  - [straight_ns, turn_ne, straight_ew, turn_sw]
+  - [turn_ne, straight_ew, straight_ew, turn_nw]

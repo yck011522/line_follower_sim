@@ -1,8 +1,9 @@
 # Technology options
 
-Status: TypeScript, Vite, and Canvas 2D are implemented for both chassis in the
-dedicated `chassis.html` visualizer. Preserve this page when adding a separate board
-page later. Browser batch workers and the optional Node.js batch runner remain planned.
+Status: TypeScript, Vite, and Canvas 2D are implemented for both chassis in
+`chassis.html` and all three board designs in the separate `board.html` studio.
+Both pages remain linked through shared navigation. Browser batch workers and
+the optional Node.js batch runner remain planned.
 
 ## Recommendation
 
@@ -67,6 +68,10 @@ Compute sensing and collisions analytically from geometry, never by reading disp
 pixels: zoom, antialiasing, and screen resolution must not alter simulation results.
 Use a single explicit world-to-screen transform to handle Canvas's downward screen
 y-axis while preserving the physical coordinate conventions.
+
+This is now implemented for ideal point sensing. Parsed configurations and prepared
+segments/arcs are cached across pose changes; dragging transforms only eight points
+and queries those primitives. See [sensor architecture](SENSING_ARCHITECTURE.md).
 
 ## Configuration and sharing
 

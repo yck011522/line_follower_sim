@@ -167,7 +167,7 @@ become optical footprint sizes or collision geometry.
 
 - Optical footprint size, sensor mounting height, and measured black/white outputs.
 - Sensor output type (analog or thresholded), noise amplitude, and channel biases.
-- Board tile layout, black-line width, turn radii, and column centers/radii.
+- Board tile layout, black-line width, turn radii, and column centers (column diameter is visual only).
 - Maximum wheel speed, desired forward speed, acceleration, and deceleration.
 - Motor command units and any measured command-to-wheel-speed relationship.
 

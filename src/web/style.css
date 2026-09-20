@@ -12,6 +12,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .brand-mark { display: grid; place-items: center; background: #173e46; border-radius: 9px; color: #9de1c7; font-size: 29px; width: 35px; height: 35px; margin-right: 4px; }
 .stage-pill { font: 600 10px ui-monospace, Consolas, monospace; letter-spacing: 1px; display: flex; align-items: center; gap: 8px; color: #58736c; }
 .stage-pill > span { width: 6px; height: 6px; border-radius: 50%; background: #26a986; }
+.studio-nav { display: flex; gap: 5px; font-size: 12px; }
+.studio-nav a { color: #72897c; text-decoration: none; padding: 9px 13px; border-radius: 6px; }
+.studio-nav a:hover { background: #f0f5f2; }
+.studio-nav a[aria-current=page] { color: #256e54; background: #eaf3ed; font-weight: 600; }
 main { max-width: 1510px; margin: auto; padding: 36px 4% 0; }
 .page-heading { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 28px; }
 .eyebrow { font-size: 10px; letter-spacing: 1.7px; font-weight: 700; color: #67827b; margin: 0 0 9px; }
@@ -95,3 +99,4 @@ footer { display: flex; justify-content: space-between; padding: 22px 0 26px; fo
 @media (max-width: 820px) { .workspace { grid-template-columns: 1fr; } .page-heading { align-items: flex-start; } h1 { font-size: 31px; } .heading-actions { flex-direction: column; } .canvas-wrap { height: 500px; } .review-panel { grid-template-columns: 1fr; gap: 15px; } .inspector-content { padding: 22px; } .stage-pill { font-size: 9px; letter-spacing: 0; } }
 @media (max-width: 480px) { main { padding: 24px 12px 0; } .site-header { padding-inline: 15px; height: 65px; } .brand { font-size: 10px; gap: 6px; } .brand-light { display: none; } .page-heading { flex-direction: column; gap: 18px; } .heading-actions { flex-direction: row; } .intro { font-size: 12px; } .panel-heading { padding: 18px; } .units-pill { font-size: 8px; } .view-controls { padding: 12px; gap: 10px; } .canvas-wrap { height: 440px; } .view-caption { font-size: 8px; } .camera-controls { flex-wrap: wrap; } .metrics > div { padding-left: 11px; } .metrics strong { font-size: 14px; } .metrics span { font-size: 9px; } .legend { padding-inline: 14px; } footer { flex-direction: column; gap: 5px; } }
 @media (max-width: 600px) { .panel-heading { flex-wrap: wrap; gap: 12px; } .chassis-picker { margin-right: 0; } .units-pill { flex-basis: 100%; text-align: center; } }
+@media (max-width: 480px) { .studio-nav { font-size: 10px; } .studio-nav a { padding: 8px; } }

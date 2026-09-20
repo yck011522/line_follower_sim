@@ -12,7 +12,7 @@ const root = document.querySelector<HTMLDivElement>('#app')!;
 root.innerHTML = `
   <header class="site-header">
     <a class="brand" href="./" aria-label="Line follower sim home"><span class="brand-mark" aria-hidden="true">↱</span> LINE FOLLOWER <span class="brand-light">/ SIM</span></a>
-    <span class="stage-pill"><span></span> STEP 01 · GEOMETRY</span>
+    <nav class="studio-nav" aria-label="Simulator pages"><a href="./chassis.html" aria-current="page">Chassis</a><a href="./board.html">Game boards</a><a href="./observe.html">Sensors</a></nav>
   </header>
   <main>
     <section class="page-heading">

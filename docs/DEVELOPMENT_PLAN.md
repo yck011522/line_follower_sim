@@ -20,9 +20,9 @@ calibration are later refinements when hardware evidence makes them useful.
 
 ## Proposed implementation and folder structure
 
-Implemented stack for stage 1: TypeScript compiled to JavaScript, with a browser UI,
-Canvas 2D drawing, and Vite, suitable for static hosting on GitHub Pages. The first
-chassis has been reviewed and both chassis are now available; subsequent stages remain planned.
+Implemented stack for stages 1 and 2: TypeScript compiled to JavaScript, with browser
+UIs, Canvas 2D drawing, and Vite, suitable for static hosting on GitHub Pages. Both
+chassis and three reference boards are implemented; stages 3–5 remain planned.
 See [technology options](TECHNOLOGY.md) for the comparison and deployment details.
 
 Keep the simulation core independent of browser APIs and rendering. Run batches
@@ -39,18 +39,23 @@ line_follower_sim/
   tsconfig.json
   index.html
   chassis.html                   # Permanent geometry studio; root currently redirects here
+  board.html                     # Separate board studio, linked from chassis page
   docs/
     DEVELOPMENT_PLAN.md
     CHASSIS_INPUTS.md
     TECHNOLOGY.md
     SIMULATION_RUNS.md
+    BOARD_FORMAT.md
+    SENSING_ARCHITECTURE.md
   references/                    # Supplied drawings and measured geometry
   configs/
     chassis/
       T90L91.yaml                 # Reviewed geometry
       T100L101.yaml               # Second chassis from its dimensioned drawing
     boards/
-      simple_loop.yaml
+      board_4_3_loop.yaml
+      board_4_3_elle.yaml
+      board_4_3_snake.yaml
     controllers/
       pid.yaml
     experiments/
@@ -60,7 +65,8 @@ line_follower_sim/
       config.ts                  # Parse and validate versioned YAML
       geometry.ts                # Transforms, segment distances, polygon queries
       chassis.ts                 # Body, wheel, sensor, and collision geometry
-      board.ts                   # Tile transforms, paths, columns
+      board-config.ts            # Board YAML validation and typed configuration
+      board.ts                   # Tile transforms, analytical paths, column centers
       sensing.ts                 # Optical readings and deterministic noise
       dynamics.ts                # Differential-drive state integration
       collision.ts               # Signed clearance and collision queries
@@ -70,6 +76,8 @@ line_follower_sim/
     web/
       main.ts                    # Controls, file import/export, run/replay UI
       renderer.ts                # Shared chassis and board drawing on Canvas
+      board-main.ts              # Board selector, tile editor, parameters, YAML
+      board-renderer.ts           # Geometry-driven board drawing and selection
       simulation.worker.ts       # Batch execution with progress and cancellation
     cli/
       main.ts                    # Optional Node.js batch runner
@@ -132,8 +140,8 @@ physical dimensions, zoom, heading, and PNG export. The user confirmed T90L91's
 widths, symmetrical polygons, and flush front wheel assemblies. T100L101 uses the
 same sensor array at x=56 mm from its drawing. Front tracks are 82.60/92.60 mm.
 The four resolved review notes have been removed. Simultaneous same-scale comparison
-is not implemented yet. Future board visualization gets a separate page; preserve
-the chassis studio and its functionality.
+is not implemented yet. Board visualization now has its own `board.html` page;
+the chassis studio and its functionality are preserved.
 
 Render wheels as top-view rectangles using tire diameter along local x and tire
 width along local y. Drive wheel centers are `(0, +/- drive_track/2)`; front wheel
@@ -150,7 +158,7 @@ data, and changes to sensor or wheel placement are visible without editing code.
 
 ## Stage 2 — Board visualizer
 
-Use an array of square tiles with a default size of 240 mm. Proposed tile tokens:
+Use an array of square tiles with a default size of 240 mm. Implemented tile tokens:
 
 | Token | Connected edges |
 | --- | --- |
@@ -172,16 +180,30 @@ and optional per-tile overrides. A 120 mm radius makes a quarter-circle connecti
 adjacent edge midpoints in a 240 mm tile. Smaller positive radii use tangent straight
 approaches joined by a quarter-circle. The initial tile scheme supports radii up
 to half the tile size; larger turns require a later multi-tile path definition.
-Validate line width relative to radius and intended board boundaries.
+Line width remains independent of radius. Support radius 10 mm with width 25 mm;
+the inner stroke fills in when the half-width exceeds the radius.
+
+The YAML names these `default_width_mm` and `default_turn_radius_mm`. Simulation
+conditions override both. A run-level radius replaces per-tile design overrides as
+well as the board default so a sweep applies one radius to every corner.
 
 Draw grid boundaries, black markings, columns, and coordinates. Validate matching
 connections between neighbors and report unintended open ends; explicitly allowed
 route endpoints are valid. Defer three-way branch geometry and route choice.
 
-Before this stage, obtain the board dimensions, tile array, column locations and
-radii, intended route, and which endpoints are allowed. Do not assume every grid
-intersection has a column. Store explicit column centers, with a shared default
-radius and optional overrides. Radius zero supports the requested point obstacles.
+Implemented from the three supplied drawings: Loop, Elle, and Snake, each with
+four columns and three rows (960 × 720 mm). Columns occupy all 20 grid intersections
+including the boundary. The 20 mm display diameter is visual only: physical column
+data stores centers, and later collision/clearance checks must use those centers
+without subtracting a radius. Initial corner radius 80 mm and line width 20 mm are
+chosen adjustable defaults, not dimensions measured from the centerline drawings.
+
+The separate `board.html` page offers a preset selector, clickable tile editor,
+default radius/line-width sliders, per-corner radius overrides, grid/column display
+controls, YAML import/edit/export, source drawing links, and PNG download. Keep the
+chassis page available through shared navigation. Open/disconnected tile drafts can
+be edited and saved, with connection diagnostics shown. All three presets are one
+closed loop. See [board format](BOARD_FORMAT.md) for the full schema and UI behavior.
 
 Done when straight tiles and all four turns render correctly, adjacent paths meet
 with the intended tangents, and line-width/radius edits change the actual sensed
@@ -205,8 +227,9 @@ For collision checking, transform the actual footprint and query each column:
 1. Compute the minimum distance from the column center to every polygon edge.
 2. Use point-in-polygon to determine whether the center lies inside the outline.
 3. Make distance negative inside, zero on the boundary, and positive outside.
-4. Subtract column radius to obtain a signed clearance; contact or overlap is
-   `clearance <= 0`.
+4. Use this signed center-to-polygon distance directly as clearance. Contact or
+   containment of the center is `clearance <= 0`. Do not subtract a column radius;
+   the configured diameter is exclusively a visualization parameter.
 
 This supports concave outlines without a convex hull. For the two supplied chassis,
 use only their explicit red collision polygons and ignore the camera. Do not union
@@ -223,6 +246,13 @@ the intended route centerline. More clearance alone does not prove better tracki
 
 Done when hand-checkable sensor poses, black-line boundaries, concave notches,
 column contact, and repeatable noisy observation sequences behave as specified.
+
+Implemented static-sensing increment: `observe.html` selects either chassis and any
+of the three boards, overrides line width and all corner radii, edits X/Y/heading,
+and supports pointer/touch dragging. Eight ideal binary point readings update live.
+Sensing uses analytical finite-segment and finite-arc distance against prepared
+geometry shared with rendering; screen pixels never enter the calculation. Noise
+and column-clearance computation remain for the next increment of stage 3.
 
 ## Stage 4 — Differential-drive motion
 
@@ -307,9 +337,12 @@ within the same software environment.
 - [x] Stage 1: user review of T90L91 dimensions and remaining assumptions.
 - [x] Stage 1: add T100L101, remove resolved notes, and preserve a dedicated chassis page.
 - [ ] Later: add a simultaneous same-scale chassis comparison view if needed.
-- [ ] Obtain board tile layout, line width, radii, and column geometry.
-- [ ] Stage 2: implement straight/turn tiles, connectivity checks, and board rendering.
-- [ ] Stage 3: implement pose transforms, optical sampling, and seeded noise.
+- [x] Obtain three board layouts and center-only column semantics; set editable radius/width defaults.
+- [x] Stage 2: implement straight/turn tiles, connectivity checks, and board rendering.
+- [x] Stage 2: add three YAML presets, graphical tile editing, and per-corner radius overrides.
+- [x] Stage 2: validate radius extremes, geometry continuity, YAML round trips, and browser navigation.
+- [x] Stage 3: implement static pose controls, dragging, and ideal point sampling.
+- [ ] Stage 3: add deterministic sensor noise and its configuration.
 - [ ] Stage 3: implement concave-footprint collision and clearance reporting.
 - [ ] Stage 4: implement motion integration, fixed timing, and collision checks in motion.
 - [ ] Agree target speed, limits, initial poses, and success/failure criteria.
