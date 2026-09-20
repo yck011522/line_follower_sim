@@ -251,8 +251,9 @@ Implemented static-sensing increment: `observe.html` selects either chassis and 
 of the three boards, overrides line width and all corner radii, edits X/Y/heading,
 and supports pointer/touch dragging. Eight ideal binary point readings update live.
 Sensing uses analytical finite-segment and finite-arc distance against prepared
-geometry shared with rendering; screen pixels never enter the calculation. Noise
-and column-clearance computation remain for the next increment of stage 3.
+geometry shared with rendering; screen pixels never enter the calculation. Signed
+clearance from the red collision polygon to all column centers is implemented and
+the closest center is highlighted. Noise remains deferred by user choice.
 
 ## Stage 4 — Differential-drive motion
 
@@ -343,7 +344,7 @@ within the same software environment.
 - [x] Stage 2: validate radius extremes, geometry continuity, YAML round trips, and browser navigation.
 - [x] Stage 3: implement static pose controls, dragging, and ideal point sampling.
 - [ ] Stage 3: add deterministic sensor noise and its configuration.
-- [ ] Stage 3: implement concave-footprint collision and clearance reporting.
+- [x] Stage 3: implement concave-footprint collision and center-clearance reporting.
 - [ ] Stage 4: implement motion integration, fixed timing, and collision checks in motion.
 - [ ] Agree target speed, limits, initial poses, and success/failure criteria.
 - [ ] Stage 5: implement PID, forward/stop input, and acceleration/deceleration ramps.

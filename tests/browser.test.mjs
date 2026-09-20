@@ -165,6 +165,13 @@ test('production UI: geometry, YAML validation/import/export, rotation, and mobi
     assert.equal(await page.locator('#hit-count').textContent(), '2 / 8 BLACK');
     assert.equal(await page.locator('.reading').count(), 8);
     assert.match(await page.locator('.reading.on').allTextContents().then(v => v.join(' ')), /s3.*s4/);
+    assert.equal(await page.locator('#clearance-state').textContent(), 'CLEAR');
+    assert.match(await page.locator('#closest-column').textContent(), /C1_0.*61 mm/);
+    assert.equal(await page.locator('#clearance-list > div').count(), 5);
+    await page.locator('#pose-y').fill('240');
+    assert.equal(await page.locator('#clearance-state').textContent(), 'COLLISION');
+    assert.match(await page.locator('#closest-column').textContent(), /C1_1.*-39.5 mm/);
+    await page.locator('#pose-y').fill('120');
     await page.locator('#scene-chassis').selectOption('T100L101');
     await page.locator('#scene-board').selectOption('snake');
     assert.equal(await page.locator('#scene-name').textContent(), 'T100L101 × Snake');

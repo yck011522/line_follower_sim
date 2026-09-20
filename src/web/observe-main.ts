@@ -11,6 +11,7 @@ import type { Pose } from '../core/geometry';
 import { observeSensors, prepareLine, resolveBoard } from '../core/sensing';
 import { renderObservation } from './observation-renderer';
 import { boardCamera } from './board-renderer';
+import { columnClearances } from '../core/collision';
 
 const chassisFiles = { T90L91: t90Yaml, T100L101: t100Yaml } as const;
 const boardFiles = { loop: loopYaml, elle: elleYaml, snake: snakeYaml } as const;
@@ -27,6 +28,7 @@ document.querySelector('#app')!.innerHTML = `
     <label>Orientation <span id="heading-output">0°</span><input id="pose-heading" type="range" min="-180" max="180" step="1" value="0" /></label>
     <p class="help">Simulation values override the board's default width and every corner radius. Dragging changes X and Y; use the slider for orientation.</p>
     <div class="section-heading readings-heading"><h3>Optical readings</h3><span id="hit-count" class="tiny-tag"></span></div><div id="sensor-readings" class="sensor-readings"></div>
+    <div class="section-heading clearance-heading"><h3>Column-center clearance</h3><span id="clearance-state" class="tiny-tag"></span></div><div id="closest-column" class="closest-column"></div><details class="clearance-details"><summary>Five closest column centers</summary><div id="clearance-list" class="clearance-list"></div></details>
     <div class="distance-note"><strong>Reading rule</strong><span>Black = centerline distance ≤ half the line width.</span></div>
   </div><p id="scene-error" class="config-error" role="alert" hidden></p></aside></div>
   <section class="board-note"><span class="tiny-tag">ANALYTICAL SENSING</span><p>Sensors query finite line segments and circular arcs in millimetres. Display pixels, zoom, and antialiasing do not affect readings.</p></section><footer><span>Eight ideal point observations from shared board geometry.</span><span>Stage 3 · Static sensing</span></footer></main>`;
@@ -50,18 +52,19 @@ function scene() {
   const width = Number(el<HTMLInputElement>('scene-width').value), radius = Number(el<HTMLInputElement>('scene-radius').value);
   const key = `${chassisKey}|${boardKey}|${width}|${radius}`;
   if (!cachedScene || cachedKey !== key) { cachedScene = buildPreparedScene(width, radius); cachedKey = key; }
-  return { ...cachedScene, observations: observeSensors(cachedScene.chassis, pose, cachedScene.line) };
+  const clearances = columnClearances(cachedScene.board, cachedScene.chassis, pose);
+  return { ...cachedScene, observations: observeSensors(cachedScene.chassis, pose, cachedScene.line), clearances, closestColumn: clearances[0] };
 }
 function render() {
   try {
-    const { chassis, board, observations } = scene();
+    const { chassis, board, observations, clearances, closestColumn } = scene();
     el('scene-error').hidden = true;
     el('scene-name').textContent = `${chassis.name} × ${board.name}`;
     el('heading-output').textContent = `${format(pose.heading * 180 / Math.PI)}°`;
     el<HTMLInputElement>('pose-x').value = format(pose.x); el<HTMLInputElement>('pose-y').value = format(pose.y);
     const zoom = Number(el<HTMLInputElement>('scene-zoom').value);
     el('scene-zoom-value').textContent = `${Math.round(zoom * 100)}%`;
-    renderObservation(canvas, board, chassis, pose, observations, zoom);
+    renderObservation(canvas, board, chassis, pose, observations, closestColumn, zoom);
     el('hit-count').textContent = `${observations.filter(o => o.value).length} / 8 BLACK`;
     const list = el('sensor-readings'); list.replaceChildren();
     for (const observation of observations) {
@@ -70,6 +73,17 @@ function render() {
       id.textContent = observation.id; state.textContent = observation.value ? '1 · BLACK' : '0 · WHITE';
       distance.textContent = `${format(observation.centerlineDistanceMm)} mm to centerline`;
       item.append(id, state, distance); list.append(item);
+    }
+    const state = el('clearance-state'); state.textContent = closestColumn.collision ? 'COLLISION' : 'CLEAR'; state.className = `tiny-tag ${closestColumn.collision ? 'collision-state' : 'clear-state'}`;
+    const closest = el('closest-column'); closest.replaceChildren();
+    const name = document.createElement('strong'), value = document.createElement('b'), coordinate = document.createElement('span');
+    name.textContent = closestColumn.columnId; value.textContent = `${format(closestColumn.clearanceMm)} mm`;
+    coordinate.textContent = `Center (${format(closestColumn.columnCenter[0])}, ${format(closestColumn.columnCenter[1])}) mm`;
+    closest.append(name, value, coordinate);
+    const clearanceList = el('clearance-list'); clearanceList.replaceChildren();
+    for (const clearance of clearances.slice(0, 5)) {
+      const row = document.createElement('div'), id = document.createElement('span'), distance = document.createElement('strong');
+      id.textContent = clearance.columnId; distance.textContent = `${format(clearance.clearanceMm)} mm`; row.append(id, distance); clearanceList.append(row);
     }
   } catch (error) {
     el('scene-error').textContent = error instanceof Error ? error.message : String(error); el('scene-error').hidden = false;

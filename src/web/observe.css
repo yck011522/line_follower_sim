@@ -18,5 +18,14 @@
 .reading.on { background: #fff7df; border-color: #e4c66f; color: #74520d; }
 .reading.off { color: #397264; }
 .distance-note { display: grid; gap: 6px; margin-top: 18px; padding: 13px; border-radius: 6px; background: #f0f5f2; color: #698076; font-size: 10px; line-height: 1.5; }
+.clearance-heading { margin-top: 27px; }
+.clear-state { color: #237458; background: #e4f2eb; }
+.collision-state { color: #a3352d; background: #f8e5e2; }
+.closest-column { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; padding: 14px; border: 1px solid #e1d9bd; border-radius: 7px; background: #fffaf0; color: #71531d; }
+.closest-column b { justify-self: end; font: 600 18px ui-monospace, Consolas, monospace; }
+.closest-column span { grid-column: 1 / -1; color: #8a7956; font: 10px ui-monospace, Consolas, monospace; }
+.clearance-details { margin-top: 14px; color: #668076; font-size: 11px; }
+.clearance-list { margin-top: 10px; border-top: 1px solid #e5ebe7; }
+.clearance-list div { display: flex; justify-content: space-between; padding: 8px 2px; border-bottom: 1px solid #edf1ee; font: 10px ui-monospace, Consolas, monospace; }
 @media (max-width: 900px) { .observe-layout { grid-template-columns: 1fr; } .observation-canvas-wrap { height: 550px; } }
 @media (max-width: 480px) { .observation-canvas-wrap { height: 390px; } .scene-grid { grid-template-columns: 1fr 1fr; } .sensor-readings { grid-template-columns: 1fr; } .drag-hint { flex-basis: 100%; text-align: center; } }

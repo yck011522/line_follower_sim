@@ -84,6 +84,11 @@ precomputed distance field behind this interface if profiling shows it is needed
 See [sensor observation architecture](docs/SENSING_ARCHITECTURE.md) for the distance
 rules, caching boundary, and later optimization options.
 
+The page also highlights the closest column center and reports signed clearance from
+the red chassis collision polygon. Positive is clear, zero is boundary contact, and
+negative means the center is inside the polygon. It lists the five nearest centers
+for spot checks while dragging. Column display diameter does not affect these values.
+
 ## Checks and production build
 
 ```sh

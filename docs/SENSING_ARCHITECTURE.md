@@ -72,3 +72,19 @@ several widths and change only the half-width threshold.
 Tests cover finite segment endpoints, finite arc sweeps/endpoints, exact stroke
 boundaries, chassis pose transforms, run-level override precedence, deterministic
 repeat calls, browser controls, and drag interaction.
+
+## Column-center clearance
+
+The red chassis collision polygon is transformed into world coordinates without a
+convex hull. For every board column center, the engine finds the nearest point on
+every finite polygon edge and uses the minimum boundary distance. A ray-crossing
+point-in-polygon test supplies its sign:
+
+- Positive: column center is outside the collision polygon.
+- Zero: column center touches the polygon boundary.
+- Negative: column center is inside the polygon and therefore colliding.
+
+Results are sorted by signed clearance; the minimum is the safety-critical closest
+column and is highlighted in the sensor studio. If multiple centers are contained,
+the most negative clearance appears first. The display diameter is never used by
+this calculation. The page also lists the five smallest clearances for visual checks.
