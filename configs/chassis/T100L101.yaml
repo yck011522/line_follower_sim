@@ -1,0 +1,44 @@
+# All distances are millimetres.
+# Origin: midpoint of the drive axle. +x forward, +y left, +z up.
+# Red collision polygon from the dimensioned drawing; camera excluded.
+schema_version: 1
+name: T100L101
+units: mm
+source: references/T100L101.png
+review_notes: []
+
+drive_axle:
+  track_width_mm: 100.36
+  wheel_diameter_mm: 65
+  tire_width_mm: 26.04
+
+front_axle:
+  x_mm: 101
+  track_width_mm: 92.60          # 128 - 35.40: assemblies flush with outline
+  wheel_diameter_mm: 70
+  tire_width_mm: 35.40           # Equal left/right assembly envelopes
+  wheel_type: passive_omni
+
+sensors:
+  left_to_right_ids: [s0, s1, s2, s3, s4, s5, s6, s7]
+  positions:
+    # x=56 from drawing; same 11.15 mm pitch and centered row as T90L91.
+    - {id: s0, x_mm: 56, y_mm: 39.025}
+    - {id: s1, x_mm: 56, y_mm: 27.875}
+    - {id: s2, x_mm: 56, y_mm: 16.725}
+    - {id: s3, x_mm: 56, y_mm: 5.575}
+    - {id: s4, x_mm: 56, y_mm: -5.575}
+    - {id: s5, x_mm: 56, y_mm: -16.725}
+    - {id: s6, x_mm: 56, y_mm: -27.875}
+    - {id: s7, x_mm: 56, y_mm: -39.025}
+
+collision:
+  mode: explicit_polygon
+  include_wheels: false         # Do not expand the red outline for visual parts
+  outline_xy_mm:
+    - [137.23, 64]
+    - [137.23, -64]
+    - [-33.77, -64]
+    - [-39.50, -36.86]
+    - [-39.50, 36.86]
+    - [-33.77, 64]

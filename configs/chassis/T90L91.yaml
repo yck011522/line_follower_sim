@@ -1,0 +1,45 @@
+# Reviewed chassis geometry. All dimensions are millimetres.
+# Origin: midpoint of the drive axle. +x forward, +y left, +z up.
+# Edit this file, or paste it into the browser's YAML editor and choose Apply.
+schema_version: 1
+name: T90L91
+units: mm
+source: references/T90L91.png
+
+review_notes: []
+
+drive_axle:
+  track_width_mm: 90.36
+  wheel_diameter_mm: 65
+  tire_width_mm: 26.04
+
+front_axle:
+  x_mm: 91
+  track_width_mm: 82.60          # 118 - 35.40: assemblies flush with outline
+  wheel_diameter_mm: 70
+  tire_width_mm: 35.40           # Simplified total assembly envelope
+  wheel_type: passive_omni
+
+sensors:
+  left_to_right_ids: [s0, s1, s2, s3, s4, s5, s6, s7]
+  positions:
+    # User-confirmed x=48, pitch=11.15, centered row, and left-to-right IDs.
+    - {id: s0, x_mm: 48, y_mm: 39.025}
+    - {id: s1, x_mm: 48, y_mm: 27.875}
+    - {id: s2, x_mm: 48, y_mm: 16.725}
+    - {id: s3, x_mm: 48, y_mm: 5.575}
+    - {id: s4, x_mm: 48, y_mm: -5.575}
+    - {id: s5, x_mm: 48, y_mm: -16.725}
+    - {id: s6, x_mm: 48, y_mm: -27.875}
+    - {id: s7, x_mm: 48, y_mm: -39.025}
+
+collision:
+  mode: explicit_polygon
+  include_wheels: false         # Do not expand the red outline for visual parts
+  outline_xy_mm:
+    - [127.23, 59]
+    - [127.23, -59]
+    - [-33.77, -59]
+    - [-39.50, -36.86]
+    - [-39.50, 36.86]
+    - [-33.77, 59]

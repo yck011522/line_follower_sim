@@ -20,10 +20,9 @@ calibration are later refinements when hardware evidence makes them useful.
 
 ## Proposed implementation and folder structure
 
-Current recommendation: TypeScript compiled to JavaScript, with a browser UI and
-Canvas 2D drawing, suitable for static hosting on GitHub Pages. This replaces the
-initial Python proposal in response to the preference for no-install sharing;
-it remains a recommendation under discussion, not an implemented stack decision.
+Implemented stack for stage 1: TypeScript compiled to JavaScript, with a browser UI,
+Canvas 2D drawing, and Vite, suitable for static hosting on GitHub Pages. The first
+chassis has been reviewed and both chassis are now available; subsequent stages remain planned.
 See [technology options](TECHNOLOGY.md) for the comparison and deployment details.
 
 Keep the simulation core independent of browser APIs and rendering. Run batches
@@ -39,6 +38,7 @@ line_follower_sim/
   package.json
   tsconfig.json
   index.html
+  chassis.html                   # Permanent geometry studio; root currently redirects here
   docs/
     DEVELOPMENT_PLAN.md
     CHASSIS_INPUTS.md
@@ -47,8 +47,8 @@ line_follower_sim/
   references/                    # Supplied drawings and measured geometry
   configs/
     chassis/
-      chassis_a.yaml
-      chassis_b.yaml
+      T90L91.yaml                 # Reviewed geometry
+      T100L101.yaml               # Second chassis from its dimensioned drawing
     boards/
       simple_loop.yaml
     controllers/
@@ -123,6 +123,17 @@ Read two independently editable YAML files and draw each chassis at physical sca
 Show body outline, drive and passive wheels, axle centers, origin, axes, sensor IDs,
 and key dimensions. Show the supplied collision polygon in red independently of
 visual components. Provide individual views and a same-scale comparison.
+
+Current increment: both YAML files are implemented with a chassis selector on the
+permanent `chassis.html` page. The root URL redirects there. The browser visualizer
+supports YAML import/edit/export, parameter tables, red polygon vertex labels,
+physical dimensions, zoom, heading, and PNG export. The user confirmed T90L91's
+11.15 mm sensor pitch and x=48 mm, centered placement, ID order, equal front wheel
+widths, symmetrical polygons, and flush front wheel assemblies. T100L101 uses the
+same sensor array at x=56 mm from its drawing. Front tracks are 82.60/92.60 mm.
+The four resolved review notes have been removed. Simultaneous same-scale comparison
+is not implemented yet. Future board visualization gets a separate page; preserve
+the chassis studio and its functionality.
 
 Render wheels as top-view rectangles using tire diameter along local x and tire
 width along local y. Drive wheel centers are `(0, +/- drive_track/2)`; front wheel
@@ -288,10 +299,14 @@ within the same software environment.
 - [x] Inspect both dimensioned chassis drawings; record red-polygon collision policy.
 - [x] Compare browser and native options and document a TypeScript recommendation.
 - [x] Specify conditions tables, summary-only storage, and deterministic visual reruns.
-- [ ] Settle implementation stack before scaffolding the application.
+- [x] Implement the TypeScript/Vite/Canvas application shell.
 - [ ] Confirm measurements and collision outline for both chassis.
-- [ ] Stage 1: implement validated YAML loading and shared chassis rendering.
-- [ ] Stage 1: create both measured configurations and verify same-scale drawings.
+- [x] Stage 1: implement validated YAML loading and shared chassis rendering.
+- [x] Stage 1: create T90L91 with user-confirmed 11.15 mm sensor pitch and 48 mm offset.
+- [x] Stage 1: verify geometry, YAML validation, production build, and browser interactions.
+- [x] Stage 1: user review of T90L91 dimensions and remaining assumptions.
+- [x] Stage 1: add T100L101, remove resolved notes, and preserve a dedicated chassis page.
+- [ ] Later: add a simultaneous same-scale chassis comparison view if needed.
 - [ ] Obtain board tile layout, line width, radii, and column geometry.
 - [ ] Stage 2: implement straight/turn tiles, connectivity checks, and board rendering.
 - [ ] Stage 3: implement pose transforms, optical sampling, and seeded noise.

@@ -1,6 +1,8 @@
 # Technology options
 
-Status: recommendation for discussion; implementation has not begun.
+Status: TypeScript, Vite, and Canvas 2D are implemented for both chassis in the
+dedicated `chassis.html` visualizer. Preserve this page when adding a separate board
+page later. Browser batch workers and the optional Node.js batch runner remain planned.
 
 ## Recommendation
 
@@ -99,29 +101,33 @@ it serves a similar purpose to pip. See the official
 | `python script.py` | `node script.js` for JavaScript; project commands handle TypeScript conversion |
 | An editor Run button | A configured editor task/debug launcher, or `npm run ...` in the terminal |
 
-Proposed development commands, available only after we scaffold the project:
+Implemented development commands:
 
 ```sh
-npm install
+npm ci
 npm run dev
 ```
 
 The first command installs project dependencies. The second starts a local development
-server, proposed to use Vite. Open the localhost URL it prints in a browser. The
+server using Vite. Open the localhost URL it prints in a browser. The
 server serves the application and transforms TypeScript into JavaScript; the browser
 executes the UI and interactive simulation. Saving source edits updates the page.
 This server is a local development tool, not a remote simulation service. See
 [Vite's getting-started guide](https://vite.dev/guide/).
 
-For browser batch runs, use the same local page and choose Run batch; a worker
+For future browser batch runs, use the same local page and choose Run batch; a worker
 executes the core without animation. For terminal batch runs, a proposed command is
 `npm run batch -- experiments.csv`, which will invoke a Node.js runner without
 opening a browser. `batch` is our future project script, not an npm built-in.
 
-`npm run build` will type-check and build the distributable website; we must configure
-the type-check explicitly. `npm run preview` will serve that build locally to verify
-it before hosting. These are proposed package scripts, not commands implemented in
-this repository yet. See [Vite deployment guidance](https://vite.dev/guide/static-deploy).
+`npm run build` type-checks and builds the distributable website. `npm run preview`
+serves that build locally to verify it before hosting. Both scripts are implemented.
+See [Vite deployment guidance](https://vite.dev/guide/static-deploy).
+
+On Windows, `start-visualizer.cmd` launches the development server and opens the
+browser. It uses installed Node.js or the portable runtime provisioned in this
+workspace's ignored `.tools/` directory. The portable runtime is not committed;
+fresh checkouts should install Node.js 24 LTS and npm.
 
 Visitors to the hosted site need only a browser. They install neither Node.js nor
 npm. Both interactive and batch browser runs happen on their own computers.

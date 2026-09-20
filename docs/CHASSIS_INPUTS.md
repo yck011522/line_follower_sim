@@ -40,18 +40,19 @@ The following values are transcribed from drawing annotations in millimetres:
 | Rearmost extent behind drive axle | 39.50 | 39.50 |
 | Total collision outline length | 166.73 | 176.73 |
 | Rear side/chamfer junction behind drive axle | 33.77 | 33.77 |
-| Rear flat edge half-width (symmetry assumed) | 36.86 | 36.86 |
+| Rear flat edge half-width (symmetry confirmed) | 36.86 | 36.86 |
 | Drive wheel center spacing | 90.36 | 100.36 |
 | Drive wheel diameter | 65.00 | 65.00 |
 | Drive tire width | 26.04 | 26.04 |
 | Front axle forward offset | 91.00 | 101.00 |
 | Front wheel diameter | 70.00 | 70.00 |
 | Front wheel assembly width annotation | 35.40 | 35.40 |
-| Forward offset near sensor row, interpretation to confirm | 48.00 | 56.00 |
+| Sensor forward offset | 48.00 (user-confirmed) | 56.00 (from drawing) |
+| Sensor center spacing | 11.15 (user-confirmed) | 11.15 (same array) |
+| Front assembly center spacing, flush with outline | 82.60 | 92.60 |
 
-With left/right symmetry assumed, the red polygons can be reconstructed as the
-following ordered local `(x, y)` vertices. The symmetry and coordinate transcription
-should be checked in the first visualizer against these source drawings.
+With left/right symmetry confirmed by the user, the red polygons are reconstructed
+as the following ordered local `(x, y)` vertices.
 
 ```text
 T90L91:
@@ -63,12 +64,21 @@ T100L101:
   (-39.50, -36.86), (-39.50, 36.86), (-33.77, 64)
 ```
 
-Remaining detail for accurate sensor/wheel rendering: sensor pitch or eight optical
-center coordinates and ID order; confirmation that the 48/56 mm offsets refer to
-optical centers; and front wheel center spacing/interpretation of the 35.40 mm
-assembly width. The paired omni-wheel construction should be represented visually
-without treating its internal rollers as extra chassis axles. The drawings provide
-enough to start an outline/drive-wheel visual draft before these details are resolved.
+For T90L91, the user confirmed 11.15 mm sensor center spacing and an optical-center
+offset of 48 mm in front of the drive axle. All distances use mm. The first
+[executable YAML](../configs/chassis/T90L91.yaml) uses the reviewed centered row, giving local
+y coordinates +39.025, +27.875, +16.725, +5.575, -5.575, -16.725, -27.875, -39.025 mm.
+
+The user reviewed the sensor coordinates, numbering, and orientation, confirmed
+equal-width front wheels and symmetrical collision polygons, and accepted front
+assemblies flush with the outline. Front tracks are 82.60 mm and 92.60 mm, derived
+by subtracting the 35.40 mm assembly width from each outline width. All four resolved
+review notes have been removed. The paired omni-wheel construction is represented
+as an assembly envelope without treating its internal rollers as extra chassis axles.
+
+[T100L101.yaml](../configs/chassis/T100L101.yaml) now uses its own drawing dimensions
+and the same centered 11.15 mm-pitch sensor array at x=56 mm. Both files are available
+in the selector on the preserved `chassis.html` page.
 
 ## Required measurements
 
@@ -103,11 +113,12 @@ left-to-right local y-coordinates are:
 Also provide any sideways offset of that row and the physical left-to-right sensor
 ID order. Staggered or uneven layouts require individual coordinates.
 
-## Proposed YAML shape
+## YAML shape
 
-This is a documentation template, not a loadable measured configuration. `null`
+The implemented first file is [T90L91.yaml](../configs/chassis/T90L91.yaml). The
+template below documents its schema; it is not itself a loadable configuration. `null`
 means a measurement is still needed, and the outline must contain at least three
-valid vertices. Sensor IDs below are provisional, ordered from left to right.
+valid vertices. Sensor IDs below use the reviewed left-to-right order.
 The initial schema assumes identical wheel pairs with axes parallel to the drive
 axle; flag exceptions so the schema can represent the actual chassis.
 
@@ -115,10 +126,8 @@ axle; flag exceptions so the schema can represent the actual chassis.
 schema_version: 1
 name: chassis_a
 units: mm
-notes: []
-
-body:
-  outline_xy_mm: []               # Visual body only; can differ from collision
+source: references/T90L91.png
+review_notes: []                  # Assumptions displayed beside the drawing
 
 drive_axle:
   track_width_mm: null            # Centers at x=0, y=+/- track_width/2
@@ -150,7 +159,7 @@ collision:
   include_wheels: false           # No automatic expansion of the explicit polygon
 ```
 
-The same structure will be used for `chassis_b.yaml`. Configuration coordinates
+The same structure is used for `T100L101.yaml`. Configuration coordinates
 describe physical geometry; drawing sizes for sensor markers should not silently
 become optical footprint sizes or collision geometry.
 
@@ -162,5 +171,5 @@ become optical footprint sizes or collision geometry.
 - Maximum wheel speed, desired forward speed, acceleration, and deceleration.
 - Motor command units and any measured command-to-wheel-speed relationship.
 
-Stage 1 can proceed as soon as the two outlines, wheel geometry, and sensor
-placements are known. No PID gains or board design are required for that stage.
+Both chassis are implemented in the dedicated chassis visualizer. No PID gains or
+board design are required at this stage.
