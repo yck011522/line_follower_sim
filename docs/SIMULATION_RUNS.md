@@ -103,3 +103,12 @@ it to the GitHub repository.
 Acceptance checks: repeat a trial and compare summaries; compare interactive and
 batch modes; reorder batch rows; replay a saved bundle after editable YAML files
 change; verify the exported dataset contains no per-step histories.
+
+The initial `simulate.html` implementation runs and downloads one such resolved
+condition and summary. Fast and real-time modes call the same fixed-step core. The
+planned Cartesian batch format, worker boundary, result selection, and replicate
+statistics are specified in [Controller and parameter sweeps](CONTROL_AND_SWEEPS.md).
+
+Local sweep runs additionally maintain `data/sweep-cache.json` through the Vite
+development server. It is a content-addressed summary cache for exact and overlapping
+condition sets. Static deployments remain read-only and use explicit downloads.

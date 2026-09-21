@@ -89,6 +89,58 @@ the red chassis collision polygon. Positive is clear, zero is boundary contact, 
 negative means the center is inside the polygon. It lists the five nearest centers
 for spot checks while dragging. Column display diameter does not affect these values.
 
+## Run the closed-loop simulation
+
+Click **Run** or open **`/simulate.html`**. The controller uses the lateral centroid
+of the active sensors as line error, maps it to a yaw-rate request with PID, and then
+maps forward speed plus yaw to left and right wheel speeds. The page exposes line
+width, turn radius, initial pose, duration, speed ramps, PID gains, yaw limit, and
+wheel-speed limit.
+
+**Fast run** advances the fixed 50 Hz model as quickly as the browser permits.
+**Real-time replay** reruns the last trial at wall-clock speed using exactly the same
+simulation steps. Both modes use analytical sensing, exact differential-drive motion,
+and bounded collision substeps. Only aggregate statistics are retained: result,
+duration, distance, minimum clearance, line error, and line-loss durations. Download
+the resolved configurations and summary as JSON; it contains no per-timestep history.
+
+The initial page runs one condition at a time. The condition-row schema, Cartesian
+sweep expansion, browser-worker/Node-runner boundary, and replicate statistics are
+documented in [controller and parameter sweeps](docs/CONTROL_AND_SWEEPS.md).
+
+## Run parameter sweeps
+
+Click **Sweeps** or open **`/sweep.html`**. Its initial experiment runs the Elle
+board for 200 simulated seconds at every combination of:
+
+- Turn radius: 10–120 mm in 10 mm steps.
+- Line width: 14–26 mm in 2 mm steps.
+- Kp: 0.1–0.8 in 0.1 steps.
+
+That produces 672 independent trials across up to four Web Workers, leaving the page responsive.
+Choose any two parameters as heat-map axes and select a slice of the third. The map
+can display minimum column clearance, RMS line error, or maximum line error. Green
+means better: larger for clearance and smaller for errors. Failed runs are dark red.
+Click a cell for its full summary or to open those conditions in the Run studio.
+
+The robustness suggestion maximizes the worst minimum clearance in each interior
+3 × 3 × 3 neighborhood. This favors a broad safe region and excludes boundary
+settings whose behavior beyond the tested range is unknown. Downloaded JSON contains
+the sweep definition, configuration snapshots, and one aggregate summary per trial.
+
+When the app is started locally with `start-visualizer.cmd` or `npm run dev`, sweep
+summaries are also cached automatically in `data/sweep-cache.json`. Before running,
+the page hashes every complete condition and reuses exact matches, including matches
+from partially overlapping sweeps. New results are merged into the cache in small
+batches. The cache is an ordinary repository file, so `git status` will show its
+changes and you may commit it when the results should be shared.
+
+The cache key covers the engine version, complete chassis and board snapshots,
+initial pose, simulation/controller settings, line width, turn radius, and Kp.
+Changing any of these creates a new entry. Static hosting such as GitHub Pages has
+no write API; there the page displays **Static mode**, keeps results in memory, and
+continues to support JSON download.
+
 ## Checks and production build
 
 ```sh
@@ -103,8 +155,7 @@ installed Microsoft Edge instead. Build before running the browser test.
 
 `npm run preview` serves the production build locally. Relative asset paths support
 hosting the built `dist/` directory under a GitHub Pages repository path. Nothing
-has been published. Motion, sensor noise, and batch simulation are later stages; there
-is no batch command yet.
+has been published. Sensor noise and the automated batch runner remain later stages.
 
 ## Project documents
 
@@ -114,7 +165,8 @@ is no batch command yet.
 - [Simulation conditions, summary results, and reruns](docs/SIMULATION_RUNS.md)
 - [Board editing and YAML format](docs/BOARD_FORMAT.md)
 - [Sensor observation architecture](docs/SENSING_ARCHITECTURE.md)
+- [Controller and parameter-sweep architecture](docs/CONTROL_AND_SWEEPS.md)
 - [Existing chassis reference drawing](references/Robot%20chassis.jpeg)
 
-Current status: the chassis, board, and static sensor-observation studios are
-implemented. A simultaneous chassis comparison view remains optional future work.
+Current status: chassis, board, static sensing, closed-loop run/replay, and batch
+sweep studios are implemented. A simultaneous chassis comparison view remains optional.

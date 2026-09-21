@@ -1,0 +1,30 @@
+.sweep-layout { display:grid; grid-template-columns:330px minmax(0,1fr); gap:22px; align-items:start; }
+.sweep-controls { max-height:none; }
+.sweep-section { padding:18px 20px; border-bottom:1px solid #e5ece8; display:grid; gap:12px; }
+.sweep-section h3 { margin:0; font-size:13px; }
+.sweep-controls label { display:grid; gap:5px; color:#627873; font-size:11px; }
+.sweep-controls input,.sweep-controls select { width:100%; padding:8px 9px; border:1px solid #d5e1dc; border-radius:5px; background:#fbfdfc; color:#23443f; }
+.range-row { display:grid; grid-template-columns:1fr 1fr 1fr; gap:7px; }
+.range-row label span { font-size:9px; text-transform:uppercase; letter-spacing:.5px; }
+.sweep-actions { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.sweep-actions .primary { grid-column:1/-1; }
+.progress-track { height:8px; background:#e5ece8; border-radius:8px; overflow:hidden; }
+.progress-track i { display:block; width:0; height:100%; background:#15927b; transition:width .12s; }
+.heat-panel { background:#fff; border:1px solid #dce5e1; border-radius:12px; overflow:hidden; }
+.heat-toolbar { padding:18px 20px; display:grid; grid-template-columns:repeat(4,minmax(120px,1fr)); gap:12px; border-bottom:1px solid #e5ece8; }
+.heat-toolbar label { display:grid; gap:5px; font-size:10px; color:#687e78; }
+.heat-toolbar select { padding:8px; border:1px solid #d5e1dc; border-radius:5px; background:#fbfdfc; }
+.heatmap-wrap { padding:20px; overflow:auto; min-height:430px; }
+.heatmap { border-collapse:separate; border-spacing:4px; margin:auto; }
+.heatmap th { font:10px ui-monospace,Consolas,monospace; color:#667d77; padding:5px; white-space:nowrap; }
+.heatmap td { min-width:72px; height:54px; border-radius:5px; text-align:center; padding:4px; font:11px ui-monospace,Consolas,monospace; border:2px solid transparent; cursor:pointer; }
+.heatmap td:hover,.heatmap td.selected { border-color:#173f46; }
+.heatmap td.failed { color:#fff; background:#8d3430 !important; }
+.heatmap td.empty { color:#92a29d; background:#edf1ef; cursor:default; }
+.axis-title { text-align:center; color:#607671; font-size:11px; margin:0 0 10px; }
+.heat-legend { display:flex; justify-content:center; align-items:center; gap:8px; padding:0 20px 20px; font-size:10px; color:#6b807b; }
+.gradient { width:180px; height:10px; border-radius:6px; background:linear-gradient(90deg,#bc4c43,#f1d36d,#2b9b78); }
+.candidate { margin:0 20px 18px; padding:12px 14px; border-radius:7px; background:#edf6f1; color:#315e50; font-size:12px; line-height:1.5; }
+.cell-detail { margin:0 20px 20px; padding:14px; border:1px solid #dde7e2; border-radius:7px; font-size:11px; line-height:1.6; }
+.cell-detail strong { color:#163f46; }
+@media(max-width:900px){.sweep-layout{grid-template-columns:1fr}.heat-toolbar{grid-template-columns:1fr 1fr}}

@@ -1,11 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
-import { mkdir, readFile } from 'node:fs/promises';
+import { mkdir, readFile, rm } from 'node:fs/promises';
 import { chromium } from 'playwright';
 
 test('production UI: geometry, YAML validation/import/export, rotation, and mobile layout', { timeout: 60_000 }, async () => {
-  const server = spawn(process.execPath, ['node_modules/vite/bin/vite.js', 'preview', '--host', '127.0.0.1', '--port', '4178', '--strictPort'], { windowsHide: true, stdio: 'pipe' });
+  await mkdir('outputs', { recursive: true });
+  await rm('outputs/test-sweep-cache.json', { force: true });
+  const server = spawn(process.execPath, ['node_modules/vite/bin/vite.js', '--host', '127.0.0.1', '--port', '4178', '--strictPort'], { windowsHide: true, stdio: 'pipe', env: { ...process.env, SWEEP_CACHE_PATH: 'outputs/test-sweep-cache.json' } });
   let browser;
   try {
     await new Promise((resolve, reject) => {
@@ -190,6 +192,42 @@ test('production UI: geometry, YAML validation/import/export, rotation, and mobi
     await page.screenshot({ path: 'outputs/sensor-studio.png', fullPage: true });
     await page.setViewportSize({ width: 390, height: 844 });
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true, 'no sensor page mobile overflow');
+    await page.setViewportSize({ width: 1440, height: 1200 });
+    await page.getByRole('link', { name: 'Run', exact: true }).click();
+    await page.locator('#run-name').waitFor();
+    assert.match(page.url(), /\/simulate\.html$/);
+    assert.equal(await page.locator('.live-reading').count(), 8);
+    await page.locator('#duration').fill('0.2');
+    await page.locator('#fast-run').click();
+    await page.locator('#run-status').filter({ hasText: 'completed' }).waitFor();
+    assert.match(await page.locator('#summary').textContent(), /Resultcompleted/);
+    assert.match(await page.locator('#summary').textContent(), /Minimum clearance/);
+    assert.equal(await page.locator('#download').isEnabled(), true);
+    await page.screenshot({ path: 'outputs/run-studio.png', fullPage: true });
+    await page.getByRole('link', { name: 'Sweeps', exact: true }).click();
+    await page.locator('#trial-count').waitFor();
+    assert.equal(await page.locator('#trial-count').textContent(), '672 trials');
+    await page.locator('#duration').fill('0.1');
+    await page.locator('#radius-stop').fill('30');
+    await page.locator('#width-stop').fill('18');
+    await page.locator('#kp-stop').fill('0.3');
+    assert.equal(await page.locator('#trial-count').textContent(), '27 trials');
+    await page.locator('#start-sweep').click();
+    await page.locator('#progress-text').filter({ hasText: 'Complete' }).waitFor();
+    assert.equal(await page.locator('#heatmap td').count(), 9);
+    assert.match(await page.locator('#candidate').textContent(), /Robust interior candidate/);
+    await page.locator('#heat-metric').selectOption('rmsLineErrorMm');
+    assert.equal(await page.locator('#good-label').textContent(), 'Less error');
+    assert.equal(await page.locator('#heatmap td').first().evaluate(cell => cell.style.background), 'rgb(43, 155, 120)');
+    await page.locator('#heatmap td').first().click();
+    assert.match(await page.locator('#cell-detail').textContent(), /minimum clearance/);
+    const replayHref = await page.locator('#cell-detail a').getAttribute('href');
+    assert.match(replayHref, /board=elle/); assert.match(replayHref, /kp=/);
+    await page.locator('#start-sweep').click();
+    await page.locator('#progress-text').filter({ hasText: '27 reused' }).waitFor();
+    const savedCache = JSON.parse(await readFile('outputs/test-sweep-cache.json', 'utf8'));
+    assert.equal(Object.keys(savedCache.entries).length, 27);
+    await page.screenshot({ path: 'outputs/sweep-studio.png', fullPage: true });
     assert.deepEqual(errors, []);
   } finally {
     await browser?.close();

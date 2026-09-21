@@ -1,4 +1,4 @@
-# Development plan
+﻿# Development plan
 
 ## Purpose and scope
 
@@ -20,9 +20,10 @@ calibration are later refinements when hardware evidence makes them useful.
 
 ## Proposed implementation and folder structure
 
-Implemented stack for stages 1 and 2: TypeScript compiled to JavaScript, with browser
-UIs, Canvas 2D drawing, and Vite, suitable for static hosting on GitHub Pages. Both
-chassis and three reference boards are implemented; stages 3–5 remain planned.
+Implemented stack: TypeScript compiled to JavaScript, with browser UIs, Canvas 2D
+drawing, and Vite, suitable for static hosting on GitHub Pages. Chassis, board,
+static sensing, differential motion, and PID run/replay pages are implemented.
+Noise and automated sweeps remain.
 See [technology options](TECHNOLOGY.md) for the comparison and deployment details.
 
 Keep the simulation core independent of browser APIs and rendering. Run batches
@@ -125,7 +126,7 @@ line_follower_sim/
 - Configuration files carry a schema version. Validate units, required fields,
   positive dimensions, sensor count, polygon validity, and tile connectivity.
 
-## Stage 1 — Chassis visualizer
+## Stage 1 â€” Chassis visualizer
 
 Read two independently editable YAML files and draw each chassis at physical scale.
 Show body outline, drive and passive wheels, axle centers, origin, axes, sensor IDs,
@@ -156,19 +157,19 @@ reused on the board later. The actual measurements needed are in
 Done when both measured chassis load, their labels and dimensions match the supplied
 data, and changes to sensor or wheel placement are visible without editing code.
 
-## Stage 2 — Board visualizer
+## Stage 2 â€” Board visualizer
 
 Use an array of square tiles with a default size of 240 mm. Implemented tile tokens:
 
 | Token | Connected edges |
 | --- | --- |
 | `empty` | None |
-| `straight_ew` | East–west |
-| `straight_ns` | North–south |
-| `turn_ne` | North–east |
-| `turn_nw` | North–west |
-| `turn_se` | South–east |
-| `turn_sw` | South–west |
+| `straight_ew` | Eastâ€“west |
+| `straight_ns` | Northâ€“south |
+| `turn_ne` | Northâ€“east |
+| `turn_nw` | Northâ€“west |
+| `turn_se` | Southâ€“east |
+| `turn_sw` | Southâ€“west |
 
 Tokens specify connections, not travel direction. Lines meet tile edges at their
 midpoints. The array's first row is the top of the drawing; world origin is the
@@ -192,7 +193,7 @@ connections between neighbors and report unintended open ends; explicitly allowe
 route endpoints are valid. Defer three-way branch geometry and route choice.
 
 Implemented from the three supplied drawings: Loop, Elle, and Snake, each with
-four columns and three rows (960 × 720 mm). Columns occupy all 20 grid intersections
+four columns and three rows (960 Ã— 720 mm). Columns occupy all 20 grid intersections
 including the boundary. The 20 mm display diameter is visual only: physical column
 data stores centers, and later collision/clearance checks must use those centers
 without subtracting a radius. Initial corner radius 80 mm and line width 20 mm are
@@ -209,7 +210,7 @@ Done when straight tiles and all four turns render correctly, adjacent paths mee
 with the intended tangents, and line-width/radius edits change the actual sensed
 geometry as well as its picture.
 
-## Stage 3 — Static sensing and column clearance
+## Stage 3 â€” Static sensing and column clearance
 
 Place either chassis at a known world pose and transform all eight sensors. Begin
 with ideal point sampling: a sensor is black when it lies within half the line
@@ -255,7 +256,7 @@ geometry shared with rendering; screen pixels never enter the calculation. Signe
 clearance from the red collision polygon to all column centers is implemented and
 the closest center is highlighted. Noise remains deferred by user choice.
 
-## Stage 4 — Differential-drive motion
+## Stage 4 â€” Differential-drive motion
 
 Initially command wheel rim speeds directly in mm/s. With drive track `b`, left
 speed `v_left`, and right speed `v_right`:
@@ -287,7 +288,7 @@ Done when equal speeds move straight, opposite speeds rotate about the axle
 midpoint, one stopped wheel produces the expected pivot, and constant-radius
 trajectories match analytic examples with consistent 50 Hz timing.
 
-## Stage 5 — PID line following and trial runner
+## Stage 5 â€” PID line following and trial runner
 
 Derive line offset from the known lateral sensor coordinates and their blackness
 weights. Define an explicit no-line case instead of dividing by zero. Make loss
@@ -345,12 +346,13 @@ within the same software environment.
 - [x] Stage 3: implement static pose controls, dragging, and ideal point sampling.
 - [ ] Stage 3: add deterministic sensor noise and its configuration.
 - [x] Stage 3: implement concave-footprint collision and center-clearance reporting.
-- [ ] Stage 4: implement motion integration, fixed timing, and collision checks in motion.
+- [x] Stage 4: implement exact motion integration, fixed timing, and bounded collision substeps.
 - [ ] Agree target speed, limits, initial poses, and success/failure criteria.
-- [ ] Stage 5: implement PID, forward/stop input, and acceleration/deceleration ramps.
-- [ ] Stage 5: run and compare reproducible 60-second trials for both chassis.
+- [x] Stage 5: implement two-level PID, forward input, acceleration/deceleration ramps, and run/replay page.
+- [x] Stage 5: verify reproducible 60-second baseline trials for both chassis.
 - [ ] Stage 5: export/import conditions and summary bundles; verify deterministic replay.
-- [ ] Later: sweep board radii, line widths, chassis placements, speed, and PID gains.
+- [x] Add browser batch sweeps and selectable 2D heat maps for radius, width, Kp, clearance, and line errors.
+- [ ] Later: extend sweeps to chassis placement, speed, other gains, and seeded noise replicates.
 - [ ] Later: add three-way tiles, routing policy, and measured hardware effects.
 
 Verification should focus on meaningful geometric boundary cases, analytic motion
