@@ -1,9 +1,8 @@
-# Inputs for the first chassis visualizer
+# Chassis geometry inputs and decisions
 
-Provide the following for each of the two chassis, in millimetres. An annotated
-top-view drawing or coordinate table is sufficient; you do not need to prepare YAML
-yourself. Unknown values can be identified explicitly and approximated for an early
-drawing, with those approximations recorded in the configuration notes.
+This document records how the two supplied dimensioned drawings were translated into
+the bundled chassis YAML files. All measurements use millimetres. It remains a useful
+checklist when adding another chassis or revisiting an assumption.
 
 ## Coordinate convention
 

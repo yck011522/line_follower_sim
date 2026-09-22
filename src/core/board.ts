@@ -17,7 +17,7 @@ export function tileCenter(board: Board, row: number, col: number): Point {
   return [(col + .5) * board.grid_size_mm, (board.tiles.length - row - .5) * board.grid_size_mm];
 }
 
-/** All dimensions in mm; analytical primitives are shared with later sensing. */
+/** All dimensions in mm; rendering and sensing share these analytical primitives. */
 export function tilePrimitives(board: Board, row: number, col: number): Primitive[] {
   const tile = board.tiles[row][col], ports = PORTS[tile.type];
   if (!ports.length) return [];

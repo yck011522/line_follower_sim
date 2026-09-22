@@ -61,7 +61,7 @@ these later changes without changing controllers or UI:
 2. Add bounding boxes or a uniform spatial grid around prepared primitives.
 3. Precompute a high-resolution signed-distance field for a fixed board parameter
    combination, using a lossless numeric buffer rather than JPEG.
-4. Run independent trials in Web Workers.
+4. Further partition primitives within the existing Web Worker sweep execution.
 5. Move the same distance kernel to WebAssembly only if measured throughput warrants it.
 
 Parameter sweeps that change radius require new geometry per parameter combination,

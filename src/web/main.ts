@@ -47,7 +47,7 @@ root.innerHTML = `
       </aside>
     </div>
     <section id="review-panel" class="review-panel" hidden><div><p class="eyebrow">CHECK BEFORE SIMULATING</p><h2>Drawing review</h2><p class="help">Review notes travel with the YAML.</p></div><ul id="review-notes"></ul></section>
-    <footer><span>Two chassis. Eight optical sensors. A shared geometry model.</span><span>Stage 1 · Visualization only</span></footer>
+    <footer><span>Two chassis. Eight optical sensors. A shared geometry model.</span><span>Chassis geometry</span></footer>
   </main>`;
 
 function el<T extends HTMLElement>(selector: string): T { return document.querySelector<T>(selector)!; }

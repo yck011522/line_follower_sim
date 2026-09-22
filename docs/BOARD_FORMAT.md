@@ -109,12 +109,12 @@ parameter study range starts at 10 mm. Width is independent of radius: even
 Strokes have round caps and form a union at shared endpoints.
 
 The analytical geometry is stored as straight segments and circular arcs, not
-screen pixels. Drawing, future optical sampling, and later parameter sweeps can
-therefore use the same underlying geometry. Grid lines and selection highlights
+screen pixels. Drawing, optical sampling, and parameter sweeps therefore use the
+same underlying geometry. Grid lines and selection highlights
 are editor overlays, not black markings or sensor inputs.
 
 **Column diameter is visualization only.** Physical column data contains IDs and
-center coordinates, not collision radii. Future clearance is the signed distance
+center coordinates, not collision radii. Clearance is the signed distance
 from the actual chassis polygon to the nearest column center, with zero or negative
 distance indicating contact/containment of that center. Do not subtract half the
 display diameter or use it to expand the collision polygon. Changing the diameter
@@ -122,7 +122,8 @@ must leave all center-based clearance/collision results unchanged.
 
 The layout checker identifies unmatched connections and separate connected loops.
 Each supplied preset is one closed loop. The editor accepts intermediate open or
-disconnected drafts; later simulation should validate a selected route before running.
+disconnected drafts. Simulation can still run them, but a closed connected route is
+required for a meaningful long-duration line-following comparison.
 The displayed centerline length is total line length, not a route-completion metric.
 
 Checks cover all four turn orientations, 10 and 120 mm radii, tangent continuity,

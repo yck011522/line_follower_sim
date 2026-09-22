@@ -31,7 +31,7 @@ document.querySelector('#app')!.innerHTML = `
     <div class="section-heading clearance-heading"><h3>Column-center clearance</h3><span id="clearance-state" class="tiny-tag"></span></div><div id="closest-column" class="closest-column"></div><details class="clearance-details"><summary>Five closest column centers</summary><div id="clearance-list" class="clearance-list"></div></details>
     <div class="distance-note"><strong>Reading rule</strong><span>Black = centerline distance ≤ half the line width.</span></div>
   </div><p id="scene-error" class="config-error" role="alert" hidden></p></aside></div>
-  <section class="board-note"><span class="tiny-tag">ANALYTICAL SENSING</span><p>Sensors query finite line segments and circular arcs in millimetres. Display pixels, zoom, and antialiasing do not affect readings.</p></section><footer><span>Eight ideal point observations from shared board geometry.</span><span>Stage 3 · Static sensing</span></footer></main>`;
+  <section class="board-note"><span class="tiny-tag">ANALYTICAL SENSING</span><p>Sensors query finite line segments and circular arcs in millimetres. Display pixels, zoom, and antialiasing do not affect readings.</p></section><footer><span>Eight ideal point observations from shared board geometry.</span><span>Static sensing</span></footer></main>`;
 
 function el<T extends HTMLElement>(id: string): T { return document.getElementById(id) as T; }
 const canvas = el<HTMLCanvasElement>('observation-canvas');

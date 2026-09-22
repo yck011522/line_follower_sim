@@ -4,7 +4,7 @@ import { spawn } from 'node:child_process';
 import { mkdir, readFile, rm } from 'node:fs/promises';
 import { chromium } from 'playwright';
 
-test('production UI: geometry, YAML validation/import/export, rotation, and mobile layout', { timeout: 60_000 }, async () => {
+test('browser UI: geometry, simulation, cache reuse, exports, and mobile layout', { timeout: 60_000 }, async () => {
   await mkdir('outputs', { recursive: true });
   await rm('outputs/test-sweep-cache.json', { force: true });
   const server = spawn(process.execPath, ['node_modules/vite/bin/vite.js', '--host', '127.0.0.1', '--port', '4178', '--strictPort'], { windowsHide: true, stdio: 'pipe', env: { ...process.env, SWEEP_CACHE_PATH: 'outputs/test-sweep-cache.json' } });
