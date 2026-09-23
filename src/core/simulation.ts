@@ -11,7 +11,8 @@ import type { NoiseConfig } from './noise';
 import { motionNoise, sensorEdgeOffsets } from './noise';
 
 /** Bump whenever numerical behavior changes so persisted sweep results are invalidated. */
-export const SIMULATION_ENGINE_VERSION = 'browser-core-0.6';
+export const SIMULATION_ENGINE_VERSION = 'browser-core-0.7';
+export const HF_YAW_CUTOFF_HZ = 2;
 
 export type SimulationStatus = 'running' | 'completed' | 'line_loss' | 'cancelled';
 export interface SimulationConfig {
@@ -36,6 +37,7 @@ export interface SimulationSummary {
   minimumClearanceTimeS: number | null;
   rmsLineErrorMm: number | null;
   maximumAbsoluteLineErrorMm: number | null;
+  hfYawRateRmsRadS: number;
   validErrorDurationS: number;
   totalLineLossDurationS: number;
   longestLineLossDurationS: number;
@@ -46,6 +48,7 @@ export interface SimulationSummary {
 interface Metrics {
   distanceMm: number; minClearanceMm: number; minColumnId: string | null; minTimeS: number | null;
   errorSquaredTime: number; maxAbsError: number; validErrorS: number;
+  hfYawSquaredTime: number; filteredYawRadS: number;
   totalLossS: number; currentLossS: number; longestLossS: number;
   firstNonpositiveColumnId: string | null; firstNonpositiveTimeS: number | null;
 }
@@ -78,6 +81,7 @@ export function createSimulation(chassis: Chassis, board: Board, initialPose: Po
     status: 'running', controllerState: initialControllerState(), observations, command: { ...stoppedCommand }, commandHistory:[],
     metrics: { distanceMm: 0, minClearanceMm: closest?.clearanceMm ?? Infinity, minColumnId: closest?.columnId ?? null,
       minTimeS: closest ? 0 : null, errorSquaredTime: 0, maxAbsError: 0, validErrorS: 0, totalLossS: 0,
+      hfYawSquaredTime:0,filteredYawRadS:0,
       currentLossS: 0, longestLossS: 0, firstNonpositiveColumnId: closest?.collision ? closest.columnId : null,
       firstNonpositiveTimeS: closest?.collision ? 0 : null },
   };
@@ -104,6 +108,9 @@ export function stepSimulation(state: SimulationState): void {
   const applied={...requested,leftMmS:(start.leftMmS+end.leftMmS)/2,rightMmS:(start.rightMmS+end.rightMmS)/2,forwardMmS:(start.forwardMmS+end.forwardMmS)/2,yawRateRadS:(start.yawRateRadS+end.yawRateRadS)/2};state.command=applied;
   while(state.commandHistory.length>2&&state.commandHistory[1].timeS<=state.timeS-delay)state.commandHistory.shift();
   const noisyMotion = motionNoise(state.timeS, applied.forwardMmS, applied.yawRateRadS, state.config.controller.maxYawRateRadS, state.config.noise);
+  const filterAlpha=1-Math.exp(-2*Math.PI*HF_YAW_CUTOFF_HZ*dt);
+  state.metrics.filteredYawRadS+=filterAlpha*(noisyMotion.yawRadS-state.metrics.filteredYawRadS);
+  const hfYaw=noisyMotion.yawRadS-state.metrics.filteredYawRadS;state.metrics.hfYawSquaredTime+=hfYaw*hfYaw*dt;
   const halfTrack = state.chassis.drive_axle.track_width_mm / 2;
   const noisyLeft = noisyMotion.forwardMmS - noisyMotion.yawRadS * halfTrack, noisyRight = noisyMotion.forwardMmS + noisyMotion.yawRadS * halfTrack;
   const translation = Math.abs(noisyMotion.forwardMmS) * dt;
@@ -145,6 +152,7 @@ export function simulationSummary(state: SimulationState): SimulationSummary {
     minimumClearanceColumnId: m.minColumnId, minimumClearanceTimeS: m.minTimeS,
     rmsLineErrorMm: m.validErrorS ? Math.sqrt(m.errorSquaredTime / m.validErrorS) : null,
     maximumAbsoluteLineErrorMm: m.validErrorS ? m.maxAbsError : null, validErrorDurationS: m.validErrorS,
+    hfYawRateRmsRadS:Math.sqrt(m.hfYawSquaredTime/Math.max(state.timeS,Number.EPSILON)),
     totalLineLossDurationS: m.totalLossS, longestLineLossDurationS: m.longestLossS,
     firstNonpositiveClearanceColumnId: m.firstNonpositiveColumnId,
     firstNonpositiveClearanceTimeS: m.firstNonpositiveTimeS, finalPose: { ...state.pose },

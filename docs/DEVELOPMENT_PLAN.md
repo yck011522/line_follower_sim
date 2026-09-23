@@ -24,6 +24,7 @@ All geometry uses millimetres and the control loop runs at 50 Hz.
 - Deterministic sensor-edge bias and turn-dependent forward/yaw slip.
 - Multi-seed robustness studies, clearance-versus-severity charts, adjustable margin
   qualification, and saved candidate comparisons.
+- A cache-backed `Kp × Kd` tuning workspace with HF yaw-rate oscillation scoring.
 - Static builds suitable for GitHub Pages, with memory/JSON fallback when writes are unavailable.
 
 ## Current architecture

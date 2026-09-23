@@ -12,7 +12,7 @@ const root = document.querySelector<HTMLDivElement>('#app')!;
 root.innerHTML = `
   <header class="site-header">
     <a class="brand" href="./" aria-label="Line follower sim home"><span class="brand-mark" aria-hidden="true">↱</span> LINE FOLLOWER <span class="brand-light">/ SIM</span></a>
-    <nav class="studio-nav" aria-label="Simulator pages"><a href="./chassis.html" aria-current="page">Chassis</a><a href="./board.html">Game boards</a><a href="./observe.html">Sensors</a><a href="./simulate.html">Run</a><a href="./sweep.html">Sweeps</a></nav>
+    <nav class="studio-nav" aria-label="Simulator pages"><a href="./chassis.html" aria-current="page">Chassis</a><a href="./board.html">Boards</a><a href="./observe.html">Sensors</a><a href="./simulate.html">Run</a><a href="./sweep.html">Sweeps</a><a href="./pid-tuning.html">PID tuning</a><a href="./robustness.html">Robustness</a></nav>
   </header>
   <main>
     <section class="page-heading">

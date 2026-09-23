@@ -1,7 +1,7 @@
 import type { SimulationSummary } from './simulation';
 
 export type SweepParameter = 'turnRadiusMm' | 'lineWidthMm' | 'kp';
-export type SweepMetric = 'minimumClearanceMm' | 'rmsLineErrorMm' | 'maximumAbsoluteLineErrorMm';
+export type SweepMetric = 'minimumClearanceMm' | 'rmsLineErrorMm' | 'maximumAbsoluteLineErrorMm' | 'hfYawRateRmsRadS';
 export interface SweepValues { turnRadiusMm: number[]; lineWidthMm: number[]; kp: number[] }
 export interface SweepPoint { turnRadiusMm: number; lineWidthMm: number; kp: number }
 export interface SweepResult extends SweepPoint { summary: SimulationSummary }
@@ -10,7 +10,7 @@ export const SWEEP_LABELS: Record<SweepParameter, string> = {
   turnRadiusMm: 'Turn radius (mm)', lineWidthMm: 'Line width (mm)', kp: 'Kp',
 };
 export const METRIC_LABELS: Record<SweepMetric, string> = {
-  minimumClearanceMm: 'Minimum clearance (mm)', rmsLineErrorMm: 'RMS line error (mm)', maximumAbsoluteLineErrorMm: 'Maximum line error (mm)',
+  minimumClearanceMm: 'Minimum clearance (mm)', rmsLineErrorMm: 'RMS line error (mm)', maximumAbsoluteLineErrorMm: 'Maximum line error (mm)', hfYawRateRmsRadS:'HF Yaw Rate RMS (rad/s)',
 };
 
 export function inclusiveRange(start: number, stop: number, step: number): number[] {

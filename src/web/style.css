@@ -6,13 +6,13 @@ button, .file-button { cursor: pointer; }
 button { transition: background .15s, border-color .15s; }
 button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible, summary:focus-visible, .file-button:focus-within { outline: 3px solid #17a88f; outline-offset: 3px; }
 [hidden] { display: none !important; }
-.site-header { height: 74px; padding: 0 4%; display: flex; align-items: center; justify-content: space-between; background: #fff; border-bottom: 1px solid #e0e8e5; }
-.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: #18343e; font-size: 12px; font-weight: 750; letter-spacing: 1.1px; }
+.site-header { height: 74px; padding: 0 4%; display: flex; align-items: center; justify-content: space-between; gap:16px; background: #fff; border-bottom: 1px solid #e0e8e5; }
+.brand { flex:0 0 auto; display: flex; align-items: center; gap: 10px; text-decoration: none; color: #18343e; font-size: 12px; font-weight: 750; letter-spacing: 1.1px; }
 .brand-light { color: #82928f; font-weight: 500; }
 .brand-mark { display: grid; place-items: center; background: #173e46; border-radius: 9px; color: #9de1c7; font-size: 29px; width: 35px; height: 35px; margin-right: 4px; }
 .stage-pill { font: 600 10px ui-monospace, Consolas, monospace; letter-spacing: 1px; display: flex; align-items: center; gap: 8px; color: #58736c; }
 .stage-pill > span { width: 6px; height: 6px; border-radius: 50%; background: #26a986; }
-.studio-nav { display: flex; gap: 5px; font-size: 12px; }
+.studio-nav { min-width:0; display: flex; gap: 5px; font-size: 12px; overflow-x:auto; scrollbar-width:thin; white-space:nowrap; }
 .studio-nav a { color: #72897c; text-decoration: none; padding: 9px 13px; border-radius: 6px; }
 .studio-nav a:hover { background: #f0f5f2; }
 .studio-nav a[aria-current=page] { color: #256e54; background: #eaf3ed; font-weight: 600; }

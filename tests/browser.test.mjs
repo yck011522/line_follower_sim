@@ -24,6 +24,7 @@ test('browser UI: geometry, simulation, cache reuse, exports, and mobile layout'
     await page.goto('http://127.0.0.1:4178/');
     await page.locator('#chassis-name').waitFor();
     assert.match(page.url(), /\/chassis\.html$/);
+    assert.equal(await page.locator('.studio-nav a').count(),7);
     assert.equal(await page.locator('#chassis-name').textContent(), 'T90L91');
     assert.match(await page.locator('#parameter-tables').textContent(), /39.025/);
     assert.match(await page.locator('#metrics').textContent(), /166.73 mm/);
@@ -94,7 +95,7 @@ test('browser UI: geometry, simulation, cache reuse, exports, and mobile layout'
     await page.screenshot({ path: 'outputs/chassis-mobile.png', fullPage: true });
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true, 'no mobile horizontal overflow');
     // The chassis page is retained alongside the independently addressable board studio.
-    await page.getByRole('link', { name: 'Game boards', exact: true }).click();
+    await page.getByRole('link', { name: 'Boards', exact: true }).click();
     await page.locator('#board-name').waitFor();
     assert.match(page.url(), /\/board\.html$/);
     assert.equal(await page.locator('#board-name').textContent(), 'Loop');
@@ -205,6 +206,7 @@ test('browser UI: geometry, simulation, cache reuse, exports, and mobile layout'
     await page.locator('#summary').filter({ hasText: 'Result' }).waitFor();
     assert.match(await page.locator('#summary').textContent(), /Resultcompleted/);
     assert.match(await page.locator('#summary').textContent(), /Minimum clearance/);
+    assert.match(await page.locator('#summary').textContent(), /HF Yaw Rate RMS/);
     assert.equal(await page.locator('#download').isEnabled(), true);
     const svgPromise = page.waitForEvent('download');
     await page.locator('#download-board-svg').click();
@@ -213,6 +215,14 @@ test('browser UI: geometry, simulation, cache reuse, exports, and mobile layout'
     const boardSvg = await readFile(await svgDownload.path(), 'utf8');
     assert.match(boardSvg, /<svg[^>]+width="960mm" height="720mm"/);
     assert.doesNotMatch(boardSvg, /chassis|sensor/i);
+    await page.locator('#duration').fill('1');
+    await page.locator('#fast-run').click();
+    await page.locator('#summary').filter({hasText:'1.00 s'}).waitFor();
+    const videoPromise=page.waitForEvent('download');
+    await page.locator('#record-video').click();
+    const videoDownload=await videoPromise;
+    assert.match(videoDownload.suggestedFilename(),/line-follower-replay-\d+\.webm/);
+    assert.ok((await readFile(await videoDownload.path())).length>100,'recorded WebM is non-empty');
     await page.screenshot({ path: 'outputs/run-studio.png', fullPage: true });
     await page.getByRole('link', { name: 'Sweeps', exact: true }).click();
     await page.locator('#trial-count').waitFor();
@@ -265,6 +275,20 @@ test('browser UI: geometry, simulation, cache reuse, exports, and mobile layout'
     assert.equal(await page.locator('#noise-seed').inputValue(), '0');
     assert.equal(await page.locator('#motor-delay').inputValue(), '0.05');
     assert.equal(await page.locator('#board').inputValue(), 'elle');
+    await page.locator('#pid-tuning-link').click();
+    await page.locator('#count').waitFor();
+    assert.match(page.url(), /pid-tuning\.html/);
+    assert.equal(await page.locator('#metric').inputValue(), 'hfYawRateRmsRadS');
+    await page.locator('#duration').fill('0.1');
+    await page.locator('#kp-stop').fill('0.125');
+    await page.locator('#kd-stop').fill('0.0025');
+    assert.equal(await page.locator('#count').textContent(), '4 trials');
+    await page.locator('#run').click();
+    await page.locator('#status').filter({hasText:'Complete'}).waitFor();
+    assert.equal(await page.locator('#map td').count(),4);
+    await page.locator('#map td').first().click();
+    assert.match(await page.locator('#detail').textContent(),/HF Yaw Rate RMS/);
+    await page.screenshot({path:'outputs/pid-tuning-studio.png',fullPage:true});
     assert.deepEqual(errors, []);
   } finally {
     await browser?.close();

@@ -28,8 +28,8 @@ npm run dev
 Open the local URL printed by Vite. In Windows PowerShell, use `npm.cmd` when the
 execution policy blocks the `npm` PowerShell wrapper.
 
-The project has six workspaces. The robustness page opens from a selected Sweep
-cell:
+The project has seven workspaces. Robustness and PID tuning can open from selected
+sweep conditions:
 
 | Page | Purpose |
 | --- | --- |
@@ -39,6 +39,7 @@ cell:
 | `simulate.html` | Run or replay one closed-loop controller trial. |
 | `sweep.html` | Batch parameters and inspect numerical heat maps. |
 | `robustness.html` | Test selected candidates across noise severity and seeds. |
+| `pid-tuning.html` | Sweep `Kp × Kd` and inspect the oscillation landscape. |
 
 ## Chassis studio
 
@@ -115,11 +116,15 @@ for individual experiments, and batch sweeps use the same value.
 reruns the same resolved conditions at wall-clock speed for visual inspection. Both
 modes use the same deterministic fixed-step core.
 
+The Run canvas keeps a bounded one-second trail of translucent chassis silhouettes
+(50 control steps), making recent swept motion and oscillation easier to see.
+
 Only aggregate results are retained:
 
 - Completion, cancellation, or line-loss status.
 - Minimum column clearance and the responsible column/time.
 - RMS and maximum absolute line error.
+- HF Yaw Rate RMS, using a 2 Hz low-pass reference to isolate rapid steering.
 - Distance travelled and line-loss durations.
 - Final pose and completed control steps.
 
@@ -129,6 +134,18 @@ poses, readings, and commands are deliberately omitted.
 Use **Download board SVG** to export the currently selected board with its resolved
 line width, turn radius, structural grid, and columns. The vector drawing uses
 millimetre dimensions and omits the chassis and sensor overlays.
+
+Use **Record replay (WebM)** to rerun the current conditions at real-time speed and
+download a compressed, canvas-only WebM video when the replay finishes. Cancelling
+the replay saves the recorded partial clip.
+
+## PID tuning studio
+
+Open **Map Kp × Kd** from the Run studio or from a selected parameter-sweep cell.
+Choose the fixed chassis, board geometry, duration, speed, and motor delay, then set
+the `Kp` and `Kd` ranges. The default heat map displays **HF Yaw Rate RMS**; lower is
+better. Clearance and line-error metrics are also available. Failed line-loss trials
+remain visually distinct, and any completed cell can be opened in the Run studio.
 
 ## Sweep studio
 

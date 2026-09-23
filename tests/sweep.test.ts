@@ -6,7 +6,7 @@ import type { SimulationSummary } from '../src/core/simulation.ts';
 function summary(clearance: number, status: SimulationSummary['status'] = 'completed'): SimulationSummary {
   return { status, success: status === 'completed', requestedDurationS: 1, actualDurationS: 1, steps: 50, distanceTraveledMm: 100,
     minimumClearanceMm: clearance, minimumClearanceColumnId: 'C0_0', minimumClearanceTimeS: .5, rmsLineErrorMm: 1,
-    maximumAbsoluteLineErrorMm: 2, validErrorDurationS: 1, totalLineLossDurationS: 0, longestLineLossDurationS: 0,
+    maximumAbsoluteLineErrorMm: 2, hfYawRateRmsRadS:.1, validErrorDurationS: 1, totalLineLossDurationS: 0, longestLineLossDurationS: 0,
     firstNonpositiveClearanceColumnId: null, firstNonpositiveClearanceTimeS: null,
     finalPose: { x: 0, y: 0, heading: 0 } };
 }

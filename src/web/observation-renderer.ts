@@ -7,14 +7,17 @@ import type { SensorObservation } from '../core/sensing';
 import type { ColumnClearance } from '../core/collision';
 import { renderBoard, boardCamera } from './board-renderer';
 
-export function renderObservation(canvas: HTMLCanvasElement, board: Board, chassis: Chassis, pose: Pose, observations: SensorObservation[], closestColumn: ColumnClearance | undefined, zoom: number): void {
+export function renderObservation(canvas: HTMLCanvasElement, board: Board, chassis: Chassis, pose: Pose, observations: SensorObservation[], closestColumn: ColumnClearance | undefined, zoom: number, trail:readonly Pose[]=[]): void {
   renderBoard(canvas, board, { zoom, grid: true, columns: true, centerline: false, selected: null });
   const ctx = canvas.getContext('2d')!, { scale, project } = boardCamera(canvas, board, zoom);
-  const world = (point: Point) => project(localToWorld(point, pose));
+  const worldAt = (point:Point,at:Pose) => project(localToWorld(point,at));
+  const world = (point: Point) => worldAt(point,pose);
   const polygon = (points: readonly Point[], fill: string, stroke: string, dash: number[] = []) => {
     ctx.beginPath(); points.forEach((point, i) => i ? ctx.lineTo(...world(point)) : ctx.moveTo(...world(point))); ctx.closePath();
     ctx.fillStyle = fill; ctx.fill(); ctx.strokeStyle = stroke; ctx.lineWidth = 1.5; ctx.setLineDash(dash); ctx.stroke(); ctx.setLineDash([]);
   };
+  const sampled=trail.filter((_,index)=>index%5===0||index===trail.length-1);
+  sampled.forEach((shadow,index)=>{const alpha=.025+.11*(index+1)/Math.max(1,sampled.length);ctx.beginPath();chassis.collision.outline_xy_mm.forEach((point,i)=>i?ctx.lineTo(...worldAt(point,shadow)):ctx.moveTo(...worldAt(point,shadow)));ctx.closePath();ctx.fillStyle=`rgba(23,75,82,${alpha})`;ctx.fill();ctx.strokeStyle=`rgba(23,75,82,${Math.min(.3,alpha*1.7)})`;ctx.lineWidth=1;ctx.stroke();});
   polygon(chassis.collision.outline_xy_mm, '#d85c5140', '#d3544d');
   for (const wheel of wheels(chassis)) polygon(wheel.outline, wheel.kind === 'drive' ? '#b8cbd2cc' : '#eddbb9cc', wheel.kind === 'drive' ? '#526f79' : '#ac7929', wheel.kind === 'omni' ? [4, 3] : []);
   const origin = project([pose.x, pose.y]);
