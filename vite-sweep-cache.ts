@@ -1,10 +1,13 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
+import { gzip, gunzip } from 'node:zlib';
+import { promisify } from 'node:util';
 import type { Plugin } from 'vite';
 
 interface CacheFile { schemaVersion: 1; entries: Record<string, { condition: unknown; result: unknown; savedAt: string }> }
 const emptyCache = (): CacheFile => ({ schemaVersion: 1, entries: {} });
+const gzipAsync = promisify(gzip), gunzipAsync = promisify(gunzip);
 
 async function requestJson(request: IncomingMessage): Promise<unknown> {
   const chunks: Buffer[] = []; let size = 0;
@@ -17,16 +20,21 @@ function respond(response: ServerResponse, status: number, value: unknown) {
 
 /** Local Vite-only API. Static GitHub Pages builds do not contain this endpoint. */
 export function sweepCachePlugin(): Plugin {
-  const cachePath = resolve(process.cwd(), process.env.SWEEP_CACHE_PATH || 'data/sweep-cache.json');
+  const cachePath = resolve(process.cwd(), process.env.SWEEP_CACHE_PATH || 'data/sweep-cache.json.gz');
+  const legacyPath = resolve(process.cwd(), 'data/sweep-cache.json');
   let cache: CacheFile | null = null, writeQueue = Promise.resolve();
   async function load() {
     if (cache) return cache;
-    try { const parsed = JSON.parse(await readFile(cachePath, 'utf8')) as CacheFile; cache = parsed.schemaVersion === 1 && parsed.entries ? parsed : emptyCache(); }
-    catch (error) { if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error; cache = emptyCache(); }
+    try { const parsed = JSON.parse((await gunzipAsync(await readFile(cachePath))).toString('utf8')) as CacheFile; cache = parsed.schemaVersion === 1 && parsed.entries ? parsed : emptyCache(); }
+    catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+      try { const parsed = JSON.parse(await readFile(legacyPath, 'utf8')) as CacheFile; cache = parsed.schemaVersion === 1 && parsed.entries ? parsed : emptyCache(); await persist(); }
+      catch (legacyError) { if ((legacyError as NodeJS.ErrnoException).code !== 'ENOENT') throw legacyError; cache = emptyCache(); }
+    }
     return cache;
   }
   function persist() {
-    writeQueue = writeQueue.then(async () => { await mkdir(dirname(cachePath), { recursive: true }); await writeFile(cachePath, `${JSON.stringify(cache, null, 2)}\n`, 'utf8'); });
+    writeQueue = writeQueue.then(async () => { await mkdir(dirname(cachePath), { recursive: true }); await writeFile(cachePath, await gzipAsync(JSON.stringify(cache), { level: 9 })); });
     return writeQueue;
   }
   return { name: 'local-sweep-cache', configureServer(server) {
@@ -35,7 +43,7 @@ export function sweepCachePlugin(): Plugin {
       if (!pathname?.startsWith('/api/sweep-cache/')) return next();
       try {
         const database = await load();
-        if (pathname === '/api/sweep-cache/status' && request.method === 'GET') return respond(response, 200, { available: true, path: 'data/sweep-cache.json', entries: Object.keys(database.entries).length });
+        if (pathname === '/api/sweep-cache/status' && request.method === 'GET') return respond(response, 200, { available: true, path: 'data/sweep-cache.json.gz', entries: Object.keys(database.entries).length });
         if (pathname === '/api/sweep-cache/lookup' && request.method === 'POST') {
           const body = await requestJson(request) as { keys?: unknown };
           if (!Array.isArray(body.keys) || body.keys.length > 10_000 || body.keys.some(key => typeof key !== 'string')) return respond(response, 400, { error: 'keys must be an array of at most 10,000 strings' });

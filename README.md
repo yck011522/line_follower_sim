@@ -1,4 +1,4 @@
-# Line-following robot simulator
+﻿# Line-following robot simulator
 
 A browser-based 2D simulator for designing a line-following game board, comparing
 two differential-drive chassis, tuning a PID controller, and finding robust parameter
@@ -28,7 +28,8 @@ npm run dev
 Open the local URL printed by Vite. In Windows PowerShell, use `npm.cmd` when the
 execution policy blocks the `npm` PowerShell wrapper.
 
-The header links the five permanent workspaces:
+The project has six workspaces. The robustness page opens from a selected Sweep
+cell:
 
 | Page | Purpose |
 | --- | --- |
@@ -37,6 +38,7 @@ The header links the five permanent workspaces:
 | `observe.html` | Place a chassis and inspect sensors and column clearance. |
 | `simulate.html` | Run or replay one closed-loop controller trial. |
 | `sweep.html` | Batch parameters and inspect numerical heat maps. |
+| `robustness.html` | Test selected candidates across noise severity and seeds. |
 
 ## Chassis studio
 
@@ -87,7 +89,8 @@ Choose a chassis and board, override line width and turn radius, and enter world
 - Negative clearance: the column centre is inside the polygon.
 
 Sensing queries finite line segments and circular arcs directly. Canvas pixels,
-antialiasing, and zoom never affect a reading. Sensor noise is currently disabled.
+antialiasing, and zoom never affect a reading. This placement page shows ideal
+readings; seeded noise is applied by the robustness studio.
 
 ## Run studio
 
@@ -99,8 +102,14 @@ The controller has two levels:
 2. PID converts error into yaw rate, then differential-drive kinematics produce
    left and right wheel speeds.
 
+If all sensors temporarily lose the line, the estimator holds its last valid error
+and the controller continues moving for up to one second. Detection recovery resumes
+normal estimation. A continuous one-second loss terminates the trial.
+
 Configure the chassis, board, initial pose, line width, turn radius, target speed,
 acceleration/deceleration ramps, PID gains, yaw limit, wheel limit, and duration.
+The default motor-output transport delay is 0.05 seconds; the Run studio exposes it
+for individual experiments, and batch sweeps use the same value.
 
 **Fast run** advances simulated time as quickly as possible. **Real-time replay**
 reruns the same resolved conditions at wall-clock speed for visual inspection. Both
@@ -108,7 +117,7 @@ modes use the same deterministic fixed-step core.
 
 Only aggregate results are retained:
 
-- Completion, collision, or line-loss status.
+- Completion, cancellation, or line-loss status.
 - Minimum column clearance and the responsible column/time.
 - RMS and maximum absolute line error.
 - Distance travelled and line-loss durations.
@@ -116,6 +125,10 @@ Only aggregate results are retained:
 
 Use **Download conditions + summary** to save a reproducible JSON record. Per-step
 poses, readings, and commands are deliberately omitted.
+
+Use **Download board SVG** to export the currently selected board with its resolved
+line width, turn radius, structural grid, and columns. The vector drawing uses
+millimetre dimensions and omits the chassis and sensor overlays.
 
 ## Sweep studio
 
@@ -133,9 +146,14 @@ edit every range. Choose any two parameters as heat-map axes and use the third a
 selectable slice.
 
 Available heat-map values are minimum clearance, RMS line error, and maximum line
-error. Green always means better: larger clearance or smaller error. Failed trials
-are dark red. Click a cell to inspect its summary or open those conditions in the
-Run studio.
+error. Green always means better: larger clearance or smaller error. Clearance stays
+continuous through zero, so overlap appears as a negative value and does not stop a
+trial. Line-loss or cancelled trials are dark red. Click a cell to inspect its
+summary or open those conditions in the Run studio.
+
+Select a completed cell and choose **Test noise robustness** to transfer that
+candidate to the robustness studio. Cells already tested in this browser carry an
+`R` marker.
 
 The robust candidate maximizes the worst minimum clearance across its full
 3 × 3 × 3 neighbourhood. Boundary points are excluded because the sweep does not
@@ -155,10 +173,31 @@ A useful workflow is:
 Overlapping refinements do not recompute conditions already present in the local
 cache.
 
+## Robustness studio
+
+The default study is T90L91 on Elle with a 14 mm line, 15 mm radius, `Kp = 0.7`,
+100 seconds per trial, 40 seeds, and severity levels from 0 through 2.0 by 0.2.
+The default engineering margin is 25 mm. Severity zero runs once; every nonzero level runs all seeds. The chart shows the
+worst and median minimum clearance plus the completed-run range. Trials terminated
+by line loss are counted separately and are excluded from clearance statistics.
+
+At severity 1.0 the bounded model applies up to ±1.5 mm of slowly varying sensor-edge
+bias, up to 3% forward slip, and up to ±5% yaw variation scaled by commanded turn
+rate. A seed reproduces the same time-varying signals exactly.
+
+Completed candidates appear in the comparison table. Change **Required engineering
+margin** to recompute qualified severity immediately from saved aggregate curves.
+Qualification is conservative: every tested severity through that level must keep
+its worst run above the margin and complete without line loss.
+
+Each severity row also identifies its worst seed. Choose **Worst seed** to open the
+exact candidate, severity, and seed in the Run studio, then use **Real-time replay**
+to inspect it.
+
 ## Persistent local sweep cache
 
 When running through `start-visualizer.cmd` or `npm run dev`, summaries are written
-automatically to [data/sweep-cache.json](data/sweep-cache.json). Before a sweep, the
+automatically to [data/sweep-cache.json.gz](data/sweep-cache.json.gz). Before a sweep, the
 page looks up every requested condition, displays cache hits immediately, and sends
 only missing conditions to workers. Partial overlap is supported, and completed
 results are saved in small batches even if you later cancel the sweep.
@@ -174,7 +213,7 @@ The SHA-256 cache key covers:
 Changing any of these creates a distinct cache entry. Numerical engine changes bump
 `SIMULATION_ENGINE_VERSION`, preventing old summaries from being silently reused.
 
-The cache is a normal repository file. After local experiments, `git status` shows
+The gzip-compressed cache is a normal repository file. After local experiments, `git status` shows
 it as modified; commit it only when the cached results should be shared. The file
 stores aggregate summaries, never trajectories.
 
@@ -243,3 +282,4 @@ vite-sweep-cache.ts    Local development cache API
 - [Sensor architecture](docs/SENSING_ARCHITECTURE.md)
 - [Simulation conditions and summaries](docs/SIMULATION_RUNS.md)
 - [Controller, sweeps, robustness, and caching](docs/CONTROL_AND_SWEEPS.md)
+

@@ -70,11 +70,11 @@ export function pointLineDistance(point: Point, line: PreparedLine): number {
   return best;
 }
 
-export function observeSensors(chassis: Chassis, pose: Pose, line: PreparedLine): SensorObservation[] {
+export function observeSensors(chassis: Chassis, pose: Pose, line: PreparedLine, edgeOffsetsMm?: Readonly<Record<string, number>>): SensorObservation[] {
   return sensorsLeftToRight(chassis).map(sensor => {
     const world = localToWorld([sensor.x_mm, sensor.y_mm], pose);
     const centerlineDistanceMm = pointLineDistance(world, line);
-    const signedEdgeDistanceMm = centerlineDistanceMm - line.halfWidthMm;
+    const signedEdgeDistanceMm = centerlineDistanceMm - line.halfWidthMm - (edgeOffsetsMm?.[sensor.id] ?? 0);
     return { id: sensor.id, world, centerlineDistanceMm, signedEdgeDistanceMm, value: signedEdgeDistanceMm <= 1e-9 ? 1 : 0 };
   });
 }

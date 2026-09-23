@@ -8,6 +8,7 @@
 .run-section h3 { margin: 0; font-size: 13px; }
 .run-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
 .run-actions .button:last-child { grid-column: 1 / -1; }
+.export-actions { display:grid; grid-template-columns:1fr 1fr; gap:9px; }
 .run-status { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 20px; background: #f6f9f7; font: 11px ui-monospace, Consolas, monospace; }
 .run-status strong { color: #127a66; text-transform: uppercase; }
 .live-readings { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }

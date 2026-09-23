@@ -2,12 +2,13 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { mkdir, readFile, rm } from 'node:fs/promises';
+import { gunzipSync } from 'node:zlib';
 import { chromium } from 'playwright';
 
 test('browser UI: geometry, simulation, cache reuse, exports, and mobile layout', { timeout: 60_000 }, async () => {
   await mkdir('outputs', { recursive: true });
-  await rm('outputs/test-sweep-cache.json', { force: true });
-  const server = spawn(process.execPath, ['node_modules/vite/bin/vite.js', '--host', '127.0.0.1', '--port', '4178', '--strictPort'], { windowsHide: true, stdio: 'pipe', env: { ...process.env, SWEEP_CACHE_PATH: 'outputs/test-sweep-cache.json' } });
+  await rm('outputs/test-sweep-cache.json.gz', { force: true });
+  const server = spawn(process.execPath, ['node_modules/vite/bin/vite.js', '--host', '127.0.0.1', '--port', '4178', '--strictPort'], { windowsHide: true, stdio: 'pipe', env: { ...process.env, SWEEP_CACHE_PATH: 'outputs/test-sweep-cache.json.gz' } });
   let browser;
   try {
     await new Promise((resolve, reject) => {
@@ -197,12 +198,21 @@ test('browser UI: geometry, simulation, cache reuse, exports, and mobile layout'
     await page.locator('#run-name').waitFor();
     assert.match(page.url(), /\/simulate\.html$/);
     assert.equal(await page.locator('.live-reading').count(), 8);
+    assert.equal(await page.locator('#motor-delay').inputValue(), '0.05');
     await page.locator('#duration').fill('0.2');
     await page.locator('#fast-run').click();
     await page.locator('#run-status').filter({ hasText: 'completed' }).waitFor();
+    await page.locator('#summary').filter({ hasText: 'Result' }).waitFor();
     assert.match(await page.locator('#summary').textContent(), /Resultcompleted/);
     assert.match(await page.locator('#summary').textContent(), /Minimum clearance/);
     assert.equal(await page.locator('#download').isEnabled(), true);
+    const svgPromise = page.waitForEvent('download');
+    await page.locator('#download-board-svg').click();
+    const svgDownload = await svgPromise;
+    assert.match(svgDownload.suggestedFilename(), /Loop-20mm-line-80mm-radius\.svg/);
+    const boardSvg = await readFile(await svgDownload.path(), 'utf8');
+    assert.match(boardSvg, /<svg[^>]+width="960mm" height="720mm"/);
+    assert.doesNotMatch(boardSvg, /chassis|sensor/i);
     await page.screenshot({ path: 'outputs/run-studio.png', fullPage: true });
     await page.getByRole('link', { name: 'Sweeps', exact: true }).click();
     await page.locator('#trial-count').waitFor();
@@ -221,13 +231,40 @@ test('browser UI: geometry, simulation, cache reuse, exports, and mobile layout'
     assert.equal(await page.locator('#heatmap td').first().evaluate(cell => cell.style.background), 'rgb(43, 155, 120)');
     await page.locator('#heatmap td').first().click();
     assert.match(await page.locator('#cell-detail').textContent(), /minimum clearance/);
-    const replayHref = await page.locator('#cell-detail a').getAttribute('href');
+    const replayHref = await page.getByRole('link', { name: /Open these conditions in Run/ }).getAttribute('href');
     assert.match(replayHref, /board=elle/); assert.match(replayHref, /kp=/);
     await page.locator('#start-sweep').click();
     await page.locator('#progress-text').filter({ hasText: '27 reused' }).waitFor();
-    const savedCache = JSON.parse(await readFile('outputs/test-sweep-cache.json', 'utf8'));
+    const savedCache = JSON.parse(gunzipSync(await readFile('outputs/test-sweep-cache.json.gz')).toString('utf8'));
     assert.equal(Object.keys(savedCache.entries).length, 27);
     await page.screenshot({ path: 'outputs/sweep-studio.png', fullPage: true });
+
+    await page.getByRole('link', { name: /Test noise robustness/ }).click();
+    await page.locator('#metric-cards').waitFor();
+    assert.match(page.url(), /robustness\.html/);
+    assert.equal(await page.locator('#duration').inputValue(), '100');
+    assert.equal(await page.locator('#trial-count').textContent(), '401 trials');
+    assert.equal(await page.locator('#severity-step').inputValue(), '0.2');
+    assert.equal(await page.locator('#seeds').inputValue(), '40');
+    assert.equal(await page.locator('#margin').inputValue(), '25');
+    await page.locator('#duration').fill('0.1');
+    await page.locator('#severity-stop').fill('0');
+    assert.equal(await page.locator('#trial-count').textContent(), '1 trials');
+    await page.locator('#run').click();
+    await page.locator('#progress-text').filter({ hasText: 'Complete' }).waitFor();
+    assert.match(await page.locator('#aggregate').textContent(), /Worst completed/);
+    assert.equal(await page.locator('#comparison tbody tr').count(), 1);
+    await page.locator('#margin').fill('-100');
+    assert.match(await page.locator('#comparison').textContent(), /0\.00/);
+    await page.screenshot({ path: 'outputs/robustness-studio.png', fullPage: true });
+    const robustnessCache = JSON.parse(gunzipSync(await readFile('outputs/test-sweep-cache.json.gz')).toString('utf8'));
+    assert.equal(Object.keys(robustnessCache.entries).length, 28);
+    await page.getByRole('link', { name: /Worst seed/ }).click();
+    await page.locator('#noise-severity').waitFor();
+    assert.equal(await page.locator('#noise-severity').inputValue(), '0');
+    assert.equal(await page.locator('#noise-seed').inputValue(), '0');
+    assert.equal(await page.locator('#motor-delay').inputValue(), '0.05');
+    assert.equal(await page.locator('#board').inputValue(), 'elle');
     assert.deepEqual(errors, []);
   } finally {
     await browser?.close();

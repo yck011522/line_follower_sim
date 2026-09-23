@@ -1,4 +1,4 @@
-# Technology and deployment
+﻿# Technology and deployment
 
 ## Implemented stack
 
@@ -29,6 +29,7 @@ and an in-browser Python runtime do not provide a benefit for the current model.
 | Fast single run | Main page, chunked fixed steps | Occasional progress/final state | Downloaded JSON only |
 | Real-time replay | Animation frames driving fixed 20 ms steps | Every display frame | Recomputed from conditions |
 | Parameter sweep | Up to four Web Workers | Heat-map progress only | Local cache plus JSON download |
+| Robustness study | Up to four Web Workers | Aggregate curve and comparison | Local cache plus browser comparison |
 
 All modes use the same analytical sensor, controller, motion, collision, and metric
 code. Canvas pixels are never simulation inputs.
@@ -41,7 +42,8 @@ npm run dev
 ```
 
 The Vite development server transforms TypeScript and exposes a local-only cache API.
-Sweep results are merged into `data/sweep-cache.json`. The Windows
+Sweep and robustness results are merged into the gzip-compressed
+`data/sweep-cache.json.gz`. The Windows
 `start-visualizer.cmd` launcher performs the same setup and opens the browser.
 
 ## Static production build
@@ -64,3 +66,4 @@ downloads. GitHub Pages has the same read-only behavior.
 
 No rendering framework, physics engine, database server, or backend service is
 required.
+

@@ -31,3 +31,12 @@ test('loss of all sensors ramps the forward command toward zero', () => {
   assert.equal(lost.command.forwardMmS, 60);
   assert.equal(lost.state.integralMmS, 0);
 });
+
+test('an estimator can hold its previous error through a brief sensor gap', () => {
+  const tracked=updateController(chassis,observations(['s2']),initialControllerState(),config,.02);
+  const held=updateController(chassis,observations([]),tracked.state,config,.02,true,tracked.command.lineErrorMm);
+  assert.equal(held.command.lineErrorMm,tracked.command.lineErrorMm);
+  assert.equal(held.command.lineDetected,true);
+  assert.ok(held.command.forwardMmS>tracked.command.forwardMmS);
+  assert.equal(held.command.yawRateRadS,tracked.command.yawRateRadS);
+});

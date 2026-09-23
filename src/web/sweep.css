@@ -19,6 +19,7 @@
 .heatmap th { font:10px ui-monospace,Consolas,monospace; color:#667d77; padding:5px; white-space:nowrap; }
 .heatmap td { min-width:72px; height:54px; border-radius:5px; text-align:center; padding:4px; font:11px ui-monospace,Consolas,monospace; border:2px solid transparent; cursor:pointer; }
 .heatmap td:hover,.heatmap td.selected { border-color:#173f46; }
+.heatmap td.robust-tested { box-shadow:inset 0 0 0 2px #fff,inset 0 0 0 4px #245f83; }
 .heatmap td.failed { color:#fff; background:#8d3430 !important; }
 .heatmap td.empty { color:#92a29d; background:#edf1ef; cursor:default; }
 .axis-title { text-align:center; color:#607671; font-size:11px; margin:0 0 10px; }

@@ -1,4 +1,4 @@
-# Controller, sweeps, robustness, and caching
+﻿# Controller, sweeps, robustness, and caching
 
 ## Controller
 
@@ -13,8 +13,10 @@ right_speed = forward_speed + yaw_rate * track_width / 2
 ```
 
 The controller has separate acceleration/deceleration limits, yaw and wheel-speed
-limits, an integral bound, and saturation-aware anti-windup. Complete sensor loss
-ramps speed toward zero and fails the trial after the configured grace interval.
+limits, an integral bound, and saturation-aware anti-windup. During complete sensor
+loss, the estimator holds its last valid error and continues control for a one-second
+grace interval. Detection recovery resumes normal estimation; continuous loss at the
+limit terminates the trial.
 
 ## Shared deterministic core
 
@@ -25,6 +27,9 @@ call this same core. Drawing never advances simulation state.
 
 Motion uses exact constant-wheel-speed integration. Collision checks subdivide a
 control interval so translation is at most 2 mm and rotation at most 2° per check.
+Controller wheel commands pass through a configurable transport delay before motion.
+The browser studios default to 0.05 seconds and interpolate at the delay boundary so
+the delay is represented even though the control timestep is 0.02 seconds.
 
 ## Parameter sweeps
 
@@ -39,7 +44,8 @@ The 672 conditions retain only aggregate summaries. The heat map permits any two
 parameters as axes, uses the third as a slice, and displays minimum clearance, RMS
 line error, or maximum line error. Colors are normalized within the visible slice;
 numeric values remain visible. Green represents the favorable direction for the
-selected metric, and failed runs are dark red.
+selected metric. Negative clearance represents overlap and remains a completed
+numerical result; line-loss or cancelled runs are dark red.
 
 Each cell can open its exact condition in the Run studio. Refining bounds or halving
 step sizes reuses overlapping cache entries.
@@ -52,13 +58,22 @@ worst-case value across this 3 × 3 × 3 neighborhood. This favors a plateau ove
 isolated peak.
 
 Boundary points are excluded because behavior just outside the tested range is
-unknown. The result is a local clearance heuristic, not a statistical confidence
-interval. Noise replicates would be required for completion rates or percentiles.
+unknown. The result is a local clearance heuristic. A selected cell can be sent to
+the robustness studio for deterministic noise replicates.
+
+The robustness study sweeps a severity scale across multiple seeds. Severity 1.0
+means bounded, correlated sensor-edge offsets (±1.5 mm total), forward slip (0–3%),
+and turn-dependent yaw variation (up to ±5%). It records the worst, median, and best
+minimum clearance among completed trials at each severity; terminated trials are
+reported separately. Qualified severity is the highest tested level
+whose worst clearance, and every lower tested level, meet the adjustable engineering
+margin without line loss. Candidate comparisons keep these aggregate curves, so
+changing the margin is immediate and requires no rerun.
 
 ## Persistent local cache
 
 The Vite development server exposes a same-origin cache API backed by
-`data/sweep-cache.json`. Each SHA-256 key covers:
+`data/sweep-cache.json.gz`. Each SHA-256 key covers:
 
 - `SIMULATION_ENGINE_VERSION`.
 - Complete chassis and board snapshots.
@@ -67,8 +82,9 @@ The Vite development server exposes a same-origin cache API backed by
 
 A sweep performs one batch lookup, displays hits immediately, and sends only misses
 to workers. New summaries are written in batches, including completed work before
-cancellation. The file contains compact condition metadata and aggregate results,
-never trajectories.
+cancellation. The gzip file contains compact condition metadata and aggregate
+results, never trajectories. Noise trials use the same cache API and include
+severity and seed in their content-derived keys.
 
 The cache is an ordinary tracked repository file. Sharing changes requires an
 explicit Git commit. Numerical behavior changes must bump `SIMULATION_ENGINE_VERSION`,
@@ -79,7 +95,8 @@ such as GitHub Pages fall back to memory and JSON downloads.
 
 ## Possible extensions
 
-- Seeded sensor-noise replicates and percentile summaries.
+- Confidence bounds based on a larger, explicitly justified seed count.
 - Additional sweep axes such as speed, `Ki`, and `Kd`.
 - A generic experiment-file importer or Node.js command-line runner.
 - Analogue sensor footprints, channel bias, line reacquisition, and branch policy.
+

@@ -59,9 +59,10 @@ export function updateController(
   config: PidControllerConfig,
   dtS: number,
   forwardEnabled = true,
+  estimatedErrorMm?: number | null,
 ): { state: ControllerState; command: WheelCommand } {
   if (!(dtS > 0)) throw new Error('Controller timestep must be greater than zero');
-  const error = estimateLineError(chassis, observations);
+  const error = estimatedErrorMm === undefined ? estimateLineError(chassis, observations) : estimatedErrorMm;
   const target = forwardEnabled && error !== null ? config.targetSpeedMmS : 0;
   const rate = target > state.forwardSpeedMmS ? config.accelerationMmS2 : config.decelerationMmS2;
   let forward = approach(state.forwardSpeedMmS, target, rate * dtS);
